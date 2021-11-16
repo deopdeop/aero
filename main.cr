@@ -13,7 +13,7 @@ server = HTTP::Server.new do |context|
 
                 const _window = #{File.read("_window.js")}
 
-                document.write('atob(#{Base64.strict_encode(body)}))')
+                document.write('atob(#{Base64.strict_encode(response.body)}))')
             </script>
             "
         when "application/javascript"
@@ -21,7 +21,7 @@ server = HTTP::Server.new do |context|
             (function (window) {
                 delete _window;
 
-                #{body}
+                #{response.body}
             }({ ...window, ..._window }));
             "
         end
