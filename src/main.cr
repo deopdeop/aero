@@ -13,29 +13,24 @@ end
 server = HTTP::Server.new do |context|
   request_uri = context.request.path.lchop('/')
   request_origin = request_uri.split('/')[2]
-  request_url = req_uri.lchop("http").lchop('s').lchop("://")
-  request_host = req_origin.first?
+  request_url = request_uri.lchop("http").lchop('s').lchop("://")
+  request_host = request_origin.first?
 
-  context.request.headers.host = request_host
-  context.request.headers.location = rewrite_url(context.request.headers.location)
-  
+  request_headers = context.request.headers
+  request_headers.host = request_host
+  request_headers.referer = rewrite_url(request_headers.referer)
+  request_headers.location = rewrite_url(request_headers.location)
   if {{ flag?(:debug) }}
-    print(context.request.headers)
+    print(request_headers)
   end
-
-  HTTP::Client.options(url, {headers: context.request.headers}) do |response|
+  HTTP::Client.options(url, {headers: request_headers}) do |response|
     cors = Hash.new
     response.headers.each do |key, value|
       if key.in? "content-encoding", "timing-allow-origin", "x-frame-options"
         cors[key] = value
         next
-      elsif key.in? "set_cookie", "set_cookie2"
-         # Rewrite
-      elsif key == "origin"
-        context.response.headers[key] = request_origin
-      else
-        context.response.headers[key] = value
       end
+      request.response.headers[key] = value
     end
 
     context.response.status_code = response.status_code
