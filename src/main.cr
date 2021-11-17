@@ -5,11 +5,10 @@ require "openssl"
 require "json"
 require "base64"
 
+
 macro rewrite_url(url)
-  "#{context.request.headers["host"]}/#{{{url}}}"
-end
-macro rewrite_cookie(cookie)
-  {{cookie}}
+  "#{context.request.headers["host"]}/#{{{ url }}}"
+  {% debug %}
 end
 
 server = HTTP::Server.new do |context|
@@ -20,19 +19,24 @@ server = HTTP::Server.new do |context|
 
   context.request.headers.host = request_host
   context.request.headers.location = rewrite_url(context.request.headers.location)
+  
+  if {{ flag?(:debug) }}
+    print(context.request.headers)
+  end
 
   HTTP::Client.options(url, {headers: context.request.headers}) do |response|
     cors = Hash.new
-    
-    response.set_cookie = rewrite_cookie(response.set_cookie)
-    response["set_cookie2"] = rewrite_cookie(response["set_cookie2"])
-    response.origin = request_origin
     response.headers.each do |key, value|
       if key.in? "content-encoding", "timing-allow-origin", "x-frame-options"
         cors[key] = value
         next
+      elsif key.in? "set_cookie", "set_cookie2"
+         # Rewrite
+      elsif key == "origin"
+        context.response.headers[key] = request_origin
+      else
+        context.response.headers[key] = value
       end
-      context.response.headers[key] = value
     end
 
     context.response.status_code = response.status_code
@@ -43,7 +47,13 @@ server = HTTP::Server.new do |context|
         <script>
             let cors = #{cors.to_json};
 
-            #{File.read("_window.js")}
+            #{
+            if {{ flag?(:debug)}}
+              File.read("_window.js")
+            else
+              {{ read_file("_window.js") }}
+            end
+            }
     
             document.write(atob('#{Base64.strict_encode(response.body)}'));
         </script>
@@ -58,13 +68,13 @@ server = HTTP::Server.new do |context|
         "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      puts json
       # TODO: Rewrite
       body = json.to_json
     end
-    puts body
     context.response.print body
-  end
+    if {{ flag?(:debug) }}
+      print body
+    end
 end
 
 ssl = OpenSSL::SSL::Context::Server.new
