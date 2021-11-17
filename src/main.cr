@@ -27,7 +27,7 @@ server = HTTP::Server.new do |context|
       request_headers[key] = value
   end
   if {{ flag?(:debug) }}
-    print(request_headers)
+    puts (request_headers)
   end
   
   HTTP::Client.options(uri, {headers: request_headers}) do |response|
@@ -49,7 +49,7 @@ server = HTTP::Server.new do |context|
             let cors = #{cors.to_json};
 
             #{
-            if {{ flag?(:debug)}}
+            if {{ flag?(:debug) }}
               File.read("_window.js")
             else
               {{ read_file("_window.js") }}
@@ -76,7 +76,7 @@ server = HTTP::Server.new do |context|
     end
     context.response.print body
     if {{ flag?(:debug) }}
-      print body
+      puts body
     end
 end
 
