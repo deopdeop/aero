@@ -11,19 +11,26 @@ macro rewrite_url(url)
 end
 
 server = HTTP::Server.new do |context|
-  request_uri = context.request.path.lchop('/')
-  request_origin = request_uri.split('/')[2]
-  request_url = request_uri.lchop("http").lchop('s').lchop("://")
-  request_host = request_origin.first?
+  uri = context.request.path.lchop('/')
+  origin = request_uri.split('/')[2]
+  url = request_uri.lchop("http").lchop('s').lchop("://")
+  host = request_origin.first?
 
-  request_headers = context.request.headers
-  request_headers.host = request_host
-  request_headers.referer = rewrite_url(request_headers.referer)
-  request_headers.location = rewrite_url(request_headers.location)
+  request_headers = Has.new
+  context.request.headers.each do |key, value|
+    case key
+    when "host"
+      request_headers[key] = host
+    when "location" || "referer"
+      request_headers[key] = rewrite_url(value)
+    else
+      request_headers[key] = value
+  end
   if {{ flag?(:debug) }}
     print(request_headers)
   end
-  HTTP::Client.options(url, {headers: request_headers}) do |response|
+  
+  HTTP::Client.options(uri, {headers: request_headers}) do |response|
     cors = Hash.new
     response.headers.each do |key, value|
       if key.in? "content-encoding", "timing-allow-origin", "x-frame-options"
@@ -62,7 +69,9 @@ server = HTTP::Server.new do |context|
         "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      # TODO: Rewrite
+      json.start_url = rewrite_Url(json.start_url)
+      json.icons.map { |icon| icon.url = rewrite_url(icon.url) }
+      related_applications.map { |application| application.url = rewrite_url(application.url}
       body = json.to_json
     end
     context.response.print body
