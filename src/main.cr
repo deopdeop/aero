@@ -5,7 +5,6 @@ require "openssl"
 require "json"
 require "base64"
 
-
 macro rewrite_url(url)
   "#{context.request.headers["host"]}/#{{{ url }}}"
   {% debug %}
