@@ -25,7 +25,7 @@ server = HTTP::Server.new do |context|
     cors = Hash.new
     
     response.set_cookie = rewrite_cookie(response.set_cookie)
-    response.set_cookie2 = rewrite_cookie(response.set_cookie2)
+    response["set_cookie2"] = rewrite_cookie(response["set_cookie2"])
     response.origin = request_origin
     response.headers.each do |key, value|
       if key.in? "content-encoding", "timing-allow-origin", "x-frame-options"
@@ -54,7 +54,7 @@ server = HTTP::Server.new do |context|
             delete _window;
 
             #{response.body}
-        }({ ...window, ..._window }));
+        }({ window, ..._window }));
         "
     when "application/manifest+json"
       json = JSON.parse(response.body)
@@ -68,7 +68,7 @@ server = HTTP::Server.new do |context|
 end
 
 ssl = OpenSSL::SSL::Context::Server.new
-ssl.certificate_chain = "ssl/public.cert"
-ssl.private_key = "ssl/private.key"
+ssl.certificate_chain = ARGV[1]
+ssl.private_key = ARGV[2]
 
-server.bind_tls "127.0.0.1", 8080, context
+server.bind_tls "127.0.0.1", ARGV[0], context
