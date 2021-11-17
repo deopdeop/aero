@@ -6,11 +6,11 @@ require "json"
 require "base64"
 
 macro rewrite_url(url)
-  "#{context.request.headers["host"]}/#{{{ url }}}"
+  "#{context.request.headers["host"]}/#{{{url}}}"
   {% debug %}
 end
 
-server = HTTP::Server.new do |context|
+http = HTTP::Server.new do |context|
   uri = context.request.path.lchop('/')
   origin = request_uri.split('/')[2]
   url = request_uri.lchop("http").lchop('s').lchop("://")
@@ -25,9 +25,6 @@ server = HTTP::Server.new do |context|
       request_headers[key] = rewrite_url(value)
     else
       request_headers[key] = value
-  end
-  if {{ flag?(:debug) }}
-    puts (request_headers)
   end
   
   HTTP::Client.options(uri, {headers: request_headers}) do |response|
@@ -69,19 +66,27 @@ server = HTTP::Server.new do |context|
         "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      json.start_url = rewrite_Url(json.start_url)
-      json.icons.map { |icon| icon.url = rewrite_url(icon.url) }
-      related_applications.map { |application| application.url = rewrite_url(application.url}
+      # TODO: Rewrite
       body = json.to_json
     end
     context.response.print body
-    if {{ flag?(:debug) }}
-      puts body
-    end
 end
+
+ws = HTTP::WebSocketHandler.new do |ws, context|
+  # Hello world
+  ws.on_ping { ws.pong context.request.path }
+end
+
+# TODO: Move the handlers to proxy.cr
+server = HTTP::Server.new[
+  # TODO: Add a file handler function here
+  # HTTP::StaticFileHandler
+  http,
+  ws
+]
 
 ssl = OpenSSL::SSL::Context::Server.new
 ssl.certificate_chain = ARGV[1]
 ssl.private_key = ARGV[2]
 
-server.bind_tls "127.0.0.1", ARGV[0], context
+server.bind_tls "127.0.0.1", ARGV[0], ssl
