@@ -1,3 +1,4 @@
+require "uri"
 require "json"
 require "base64"
 
@@ -7,11 +8,13 @@ macro rewrite_url(url)
 end
 
 http = HTTP::Server.new do |context|
+  request_uri = URI.parse(context.request.url.path.lchop('/'))
+  
   request_headers = Hash.new
   context.request.headers.each do |key, value|
     case key
     when "host"
-      request_headers[key] = host
+      request_headers[key] = request_uri.host
     when "location" || "referer"
       request_headers[key] = rewrite_url(value)
     else
