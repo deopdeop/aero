@@ -7,11 +7,6 @@ macro rewrite_url(url)
 end
 
 http = HTTP::Server.new do |context|
-  uri = context.request.path.lchop('/')
-  origin = uri.split('/')[2]
-  url = uri.lchop("http").lchop('s').lchop("://")
-  host = origin.split('/').first?
-
   request_headers = Hash.new
   context.request.headers.each do |key, value|
     case key
@@ -42,15 +37,9 @@ http = HTTP::Server.new do |context|
         <script>
           let cors = #{cors.to_json};
 
-          #{
-          if {{ flag?(:debug) }}
-            File.read("_window.js")
-          else
-            {{ read_file("_window.js") }}
-          end
-          }
+          {{ read_file("_window.js") }}
 
-            document.write(atob('#{Base64.strict_encode(response.body)}'));
+          document.write(atob('#{Base64.strict_encode(response.body)}'));
         </script>
         "
     when "application/javascript" || "application/x-javascript" || "text/javascript"
