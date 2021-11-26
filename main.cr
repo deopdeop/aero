@@ -2,6 +2,7 @@ require "http"
 require "uri"
 require "json"
 require "base64"
+require "regex"
 
 macro rewrite_uri(url)
   "#{context.request.headers["host"]}/#{{{url}}}"
@@ -13,26 +14,34 @@ http = HTTP::Server.new do |context|
   request_headers = HTTP::Headers.new
   context.request.headers.each do |key, value|
     case key
-    when "host"
+    when "Host"
       request_headers[key] = context.request.headers["Host"]
-    when "location" || "referer"
+    "referer"
+      puts value
       request_headers[key] = rewrite_uri(value)
     else
       request_headers[key] = value
     end
   end 
 
-  # FIXME
+  # FIXME: The bug makes google look like it is from the 2010s
   #HTTP::Client.options(request_uri, { headers: request_headers }) do |response|
   HTTP::Client.get(request_uri) do |response|
     cors = HTTP::Headers.new
     response.headers.each do |key, value|
-      if key.in? "Content-Encoding", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
-        puts "Deleting " + key
+      if key.in? "Content-Encoding", "Content-Length", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
+        puts "Deleting #{key}"
         cors[key] = value
         next
       end
-      context.response.headers[key] = value
+      if key.in? "Set-Cookie", "Set-Cookie2"
+        # TODO: Rewrite.
+      elsif key === "Location"
+        context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
+      else
+        puts "Keeping #{key}"
+        context.response.headers[key] = value
+      end
     end
 
     context.response.status_code = response.status_code
@@ -65,7 +74,7 @@ _window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      # TODO: Rewrite manifest.json
+      # TODO: Rewrite.
       body = json.to_json
     else
       body = response.body_io.gets_to_end
@@ -75,6 +84,7 @@ _window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end
 end
 
 ws = HTTP::WebSocketHandler.new do |ws, context|
+  # TODO: Proxy.
   ws.on_ping { ws.pong context.request.path }
 end
 
