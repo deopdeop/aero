@@ -37,7 +37,7 @@ http = HTTP::Server.new do |context|
 
     context.response.status_code = response.status_code
 
-    # FIXME: response.body returns nothing so response.body_io.gets_to_end is a placeholder.
+    # response.body returns nothing so response.body_io.gets_to_end is a placeholder.
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       puts cors.to_json
@@ -57,7 +57,7 @@ _window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end
 </script>
       "
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      # FIXME: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
+      # TODO: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
       body = "
 (function (window) {
     #{response.body_io.gets_to_end}
@@ -65,7 +65,7 @@ _window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      # FIXME: Rewrite manifest.json
+      # TODO: Rewrite manifest.json
       body = json.to_json
     else
       body = response.body_io.gets_to_end
