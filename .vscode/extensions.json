@@ -1,0 +1,12 @@
+{
+	"recommendations": [
+		"crystal-lang-tools.crystal-lang",
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "msjsdiag.debugger-for-edge",
+        "edgedevtools.vscode-edge-devtools",
+        "github.vscode-pull-request-github",
+        "ms-vsliveshare.vsliveshare-pack"
+	]
+}

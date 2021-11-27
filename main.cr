@@ -29,7 +29,7 @@ http = HTTP::Server.new do |context|
 
   HTTP::Client.get(request_uri, request_headers) do |response|
     cors = HTTP::Headers.new
-    # TODO: Document specs and be spec complient
+    # TODO: Standard compliancy
     response.headers.each do |key, value|
       # TODO: Don't remove Strict-Transport-Security if running ssl
       # TODO: Rewrite Alt-Svc instead of deleting it
@@ -50,7 +50,6 @@ http = HTTP::Server.new do |context|
 
     context.response.status_code = response.status_code
 
-    # response.body returns nothing so response.body_io.gets_to_end is a placeholder.
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       p cors.to_json
@@ -62,9 +61,9 @@ let ctx = {
     url: new URL('#{request_uri}')
 };  
 
-#{File.read("./old_browser.js")}
+#{read_file("#{__DIR__}/browser/index.js")}
 
-_window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
+globalThis.window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 </script>
       "
       p body
@@ -73,7 +72,7 @@ _window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end
       body = "
 (function (window) {
     #{response.body_io.gets_to_end}
-}({ window, ..._window }));
+}({ window, ...globalThis.window }));
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)

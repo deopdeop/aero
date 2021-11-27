@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "importHelpers": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "ES6",
+    "lib": [
+        "DOM",
+        "ESNext"
+    ]
+  }
+}
