@@ -61,9 +61,9 @@ let ctx = {
     url: new URL('#{request_uri}')
 };  
 
-#{read_file("#{__DIR__}/browser/index.js")}
+#{File.read("./index.js")}
 
-globalThis.window.document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
+document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 </script>
       "
       p body
