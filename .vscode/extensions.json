@@ -2,7 +2,7 @@
 	"recommendations": [
 		"crystal-lang-tools.crystal-lang",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
+        "hookyqr.beautify",
         "firefox-devtools.vscode-firefox-debug",
         "github.vscode-pull-request-github",
         "ms-vsliveshare.vsliveshare-pack"

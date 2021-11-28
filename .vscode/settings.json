@@ -1,9 +1,4 @@
 {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[javascript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode",
-      "editor.formatOnSave": true
-    },
-    "prettier.singleQuote": true,
-    "prettier.tabWidth": 4
+    "editor.defaultFormatter": "HookyQR.beautify",
+    "editor.formatOnSave": false,
   }

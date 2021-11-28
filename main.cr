@@ -9,6 +9,12 @@ macro rewrite_uri(url)
 end
 
 http = HTTP::Server.new do |context|
+  if context.request.path === "/interceptor.js"
+    context.response.headers["Content-Type"] = "application/javascript"
+    context.response.print File.read("sw.js")
+    next
+  end
+
   request_uri = URI.parse(context.request.path.lchop('/'))
   
   request_headers = HTTP::Headers.new
@@ -33,14 +39,14 @@ http = HTTP::Server.new do |context|
     response.headers.each do |key, value|
       # TODO: Don't remove Strict-Transport-Security if running ssl
       # TODO: Rewrite Alt-Svc instead of deleting it
-      if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Cross-Origin-Resource-Policy", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
+      if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
         #p "Deleting #{key}"
         cors[key] = value
         next
       end
       if key.in? "Set-Cookie", "Set-Cookie2"
         # TODO: Rewrite.
-      elsif key === "Location"
+      elsif key === "location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
       else
         #p "Keeping #{key}"
@@ -66,7 +72,6 @@ let ctx = {
 document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 </script>
       "
-      p body
     when "application/javascript" || "application/x-javascript" || "text/javascript"
       # TODO: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
       body = "
