@@ -1,21 +1,37 @@
-/*
-globalThis.observerCallback = () =>
-  mutationsList.forEach(mutation => {
+globalThis.observerCallback = (mutations, observer) => {
+  console.log(mutations);
+  mutations.forEach(mutation => {
+    console.log(mutation.target);
     if (mutation.target.href) {
+      console.log(mutation.target.href);
       mutation.target.href = rewrite.url(mutation.target.href);
-      // Don't observe the recent rewrite
+      console.log(mutation.target.href);
+      observer.takeRecords();
+    }
+    if (mutation.target.src) {
+      console.log(mutation.target.src);
+      mutation.target.src = rewrite.url(mutation.target.src);
+      console.log(mutation.target.src);
+      observer.takeRecords();
+    }
+    if (mutation.target.action) {
+      console.log(mutation.target.action);
+      mutation.target.action = rewrite.url(mutation.target.action);
+      console.log(mutation.target.action);
       observer.takeRecords();
     }
     switch (mutation.target.tagName) {
-      case 'Script':
+      case 'SCRIPT':
         // ...
         break;
-      case 'Style':
+      case 'STYLE':
         // ...
     }
-  });
 
-let observer = new MutationObserver((mutationsList, observer) => observerCallback)
+    // Don't observe the recent rewrites
+  });
+}
+new MutationObserver(globalThis.observerCallback)
   .observe(
     document.documentElement, {
       attributes: true,
@@ -24,17 +40,25 @@ let observer = new MutationObserver((mutationsList, observer) => observerCallbac
     }
   );
 
+console.log('Writing html')
+document.write(ctx.body);
+
 navigator.serviceWorker.register('/sw.js', {
     scope: '/'
   })
   .then(registration => {
     console.log(`The interceptor was registered! The scope is ${registration.scope}`);
+
     registration.update();
-    // TODO: Switch to using background fetch and add Service-Worker-Allowed 
-    registration.addEventListener('updatefound', => console.log(registration.installing));
+
+    registration.addEventListener('updatefound', () => {
+      console.log(registration.installing)
+    });
   });
 
-Object.assign(window, globalThis._window);
+globalThis._window = Object.assign({}, window);
+
+console.log(_window);
 
 Object.defineProperty(_window, 'location', {
   get(target, prop) {
@@ -49,7 +73,7 @@ _window.WebSocket = new Proxy(WebSocket, {
   }
 });
 
-_window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
+_window.RTCPeerConnection = new Proxy(RTCPeerConnection, {
   construct(target, args) {
     if (args[1].urls.startsWith('turns:')) {
       args[1].username += `|${args[1].urls}`;
@@ -61,7 +85,6 @@ _window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
 });
 
 // Privacy Middleware
-// TODO: Only include if enabled
 
 // Spyware that was bribed by filtering companies and testing organizations
 if ('IdleDetector' in window && ctx.secure) {
@@ -99,13 +122,13 @@ if ('IdleDetector' in window && ctx.secure) {
 // TODO: On the service worker create an indexdb entry of the information instead of storing it in browsing history
 /*
 Object.defineProperty(_window.History, 'pushState', {
-  apply(target, thisArg, args) {
-    return;
-  }
+apply(target, thisArg, args) {
+  return;
+}
 });
 Object.defineProperty(_window.History, 'replaceState', {
-  apply(target, thisArg, args) {
-    return;
-  }
+apply(target, thisArg, args) {
+  return;
+}
 });
 */

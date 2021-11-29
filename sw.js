@@ -1,12 +1,3 @@
-self.addEventListener('activate', event => {
-  event.waitUntil((async function() {
-    if (self.registration.navigationPreload)
-      await self.registration.navigationPreload.enable();
-  })());
-});
-
-self.addEventListener('install', event => self.skipWaiting());
-
 let allowResource = {
   // TODO: Comply with standards
   'Access-Control-Allow-Origin': url => ctx.cors['Access-Control-Allow-Origin'] ? ctx.cors['Access-Control-Allow-Origin'].includes(new URL(url).origin) : true,
@@ -58,12 +49,29 @@ let allowResource = {
   }
 };
 
-self.addEventListener('fetch', event => {
-  console.log(event.request.url);
-  event.respondWith(async () => {
-    let response = await event.preloadResponse;
-    response ??= await fetch(event.request);
+self.addEventListener('activate', event => {
+  /*
+  event.waitUntil((async function() {
+    //if (self.registration.navigationPreload)
+      //await self.registration.navigationPreload.enable();
+  })());
+  */
+ console.log('Activated the service worker');
+});
 
-    console.log(response);
-  });
+//self.addEventListener('install', event => self.skipWaiting());
+self.addEventListener('install', event => console.log('Installed the service worker'));
+
+addEventListener('fetch', event => {
+  let split = event.request.url.split('http://localhost:8080/');
+  console.log(`${split[0]}https://google.com/${split[1]}`);
+
+  event.respondWith(async function() {
+    const cachedResponse = await caches.match(event.request);
+
+    if (cachedResponse)
+      return cachedResponse;
+
+    return fetch(event.request);
+  }());
 });

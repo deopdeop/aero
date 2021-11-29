@@ -8,21 +8,10 @@ class HTTPHandler
   include HTTP::Handler
 
   def call(context)
-    rewrite = "
-let rewrite = {
-  url: url => /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/gm.test(url) ? `${location.origin}/${url}` : `${location.origin}/${ctx.url.origin}${url}`,
-  js: body => `
-(function (window, globalThis.window) {
-  ${body}
-}(_window, undefined)
-  `
-};
-    "
-
     if context.request.path === "/sw.js"
       context.response.headers["Content-Type"] = "application/javascript"
-      context.response.print rewrite + File.read("sw.js")
-      # next
+      context.response.print File.read("./rewrite.js") + File.read("sw.js")
+      return
     end
     
     request_uri = URI.parse(context.request.path.lchop('/'))
@@ -31,8 +20,8 @@ let rewrite = {
     context.request.headers.each do |key, value|
       case key
       when "Accept-Encoding" || "Cache-Control" || "Sec-Fetch-Site" || "Service-Worker" || "X-Forwarded-For" || "X-Forwarded-Host"
+        p "Deleting #{key}"
       when "Host"
-        p value
         request_headers[key] = request_uri.host.not_nil!
       when "Referer"
         # TODO: Unescape url
@@ -47,7 +36,7 @@ let rewrite = {
         # TODO: Don't remove Strict-Transport-Security if running ssl
         # TODO: Rewrite Alt-Svc instead of deleting it
         # TODO: Use switch statement instead
-        if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
+        if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
           cors[key] = value
           # This was next
         elsif key.in? "Set-Cookie", "Set-Cookie2"
@@ -60,8 +49,7 @@ let rewrite = {
       end
       # TODO: Now that it has been changed, emulate this in js
       context.response.headers.add("Service-Worker-Allowed", "/")
-
-      p response.headers
+      context.response.headers.add("Access-Control-Allow-Origin", "*")
 
       context.response.status_code = response.status_code
     
@@ -70,20 +58,18 @@ let rewrite = {
         # TODO: If debug mode read file real time or else read in compile time
         body = "
 <script>
-#{rewrite}
+#{File.read("./rewrite.js")}
     
 let ctx = {
+  body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
   cors: #{cors.to_json},
   url: new URL('#{request_uri}')
 };
     
 #{File.read("./index.js")}
-    
-document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 </script>
       "
       when "application/javascript" || "application/x-javascript" || "text/javascript"
-        # TODO: Implement yoct's amazing regex
         body = "
 (function (window, _window) {
   #{response.body_io.gets_to_end}
