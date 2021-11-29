@@ -5,10 +5,16 @@ globalThis.observerCallback = () =>
       // Don't observe the recent rewrite
       observer.takeRecords();
     }
-    // TODO: Rewrite.
+    switch (mutation.target.tagName) {
+      case 'Script':
+        // ...
+        break;
+      case 'Style':
+        // ...
+    }
   });
 
-let observer = new MutationObserver((mutationsList, observer) => globalThis.observerCallback)
+let observer = new MutationObserver((mutationsList, observer) => observerCallback)
   .observe(
     document.documentElement, {
       attributes: true,
@@ -17,19 +23,32 @@ let observer = new MutationObserver((mutationsList, observer) => globalThis.obse
     }
   );
 
-navigator.serviceWorker.register('/sw.js')
-  .then(registration => console.log(`The interceptor was registered! The scope is ${registration.scope}`));
+navigator.serviceWorker.register('/sw.js', {
+    scope: '/'
+  })
+  .then(registration => {
+    console.log(`The interceptor was registered! The scope is ${registration.scope}`);
+    registration.update();
+    // TODO: Switch to using background fetch and add Service-Worker-Allowed 
+    registration.addEventListener('updatefound', => console.log(registration.installing));
+  });
 
-  // TODO: With Object.defineProperty make the GET function detect if the return value exposes the proxy's host then hide it else send original
-globalThis.window = {};
+Object.assign(window, globalThis._window);
 
-globalThis.window.WebSocket = new Proxy(window.WebSocket, {
+Object.defineProperty(_window, 'location', {
+  get(target, prop) {
+    return ctx.url[prop];
+  }
+});
+
+_window.WebSocket = new Proxy(WebSocket, {
   construct(target, args) {
     args[0] = rewrite.url(args[0]);
     return Reflect.construct(...arguments);
   }
 });
-globalThis.window.RTCPeerConnection.prototype = new Proxy(window.RTCPeerConnection.prototype, {
+
+_window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
   construct(target, args) {
     if (args[1].urls.startsWith('turns:')) {
       args[1].username += `|${args[1].urls}`;
@@ -39,3 +58,54 @@ globalThis.window.RTCPeerConnection.prototype = new Proxy(window.RTCPeerConnecti
       console.warn("STUN connections aren't supported!");
   }
 })
+
+// Privacy Middleware
+// TODO: Only include if enabled
+
+// Spyware that was bribed by filtering companies and testing organizations
+if ('IdleDetector' in window && ctx.secure) {
+  // We should switch to typescript just for these types...
+  // https://wicg.github.io/idle-detection/#idl-index
+  let UserIdleState;
+  let ScreenIdleState;
+  let IdleOptions;
+
+  Object.defineProperty(_window.IdleDetection.prototype, 'requestPermission', {
+    apply(target, thisArg, args) {
+      UserIdleState = true;
+      ScreenIdleState = true;
+      // TODO: Return promise
+      return 'granted';
+    }
+  });
+  Object.defineProperty(_window.IdleDetection.prototype, 'screenState', {
+    get() {
+      return UserIdleState;
+    }
+  });
+  Object.defineProperty(_window.IdleDetection.prototype, 'start', {
+    apply(target, thisArg, args) {
+      IdleOptions = args[0];
+    }
+  });
+  Object.defineProperty(_window.IdleDetection.prototype, 'userState', {
+    get() {
+      return UserIdleState;
+    }
+  });
+}
+});
+
+// TODO: On the service worker create an indexdb entry of the information instead of storing it in browsing history
+/*
+Object.defineProperty(_window.History, 'pushState', {
+  apply(target, thisArg, args) {
+    return;
+  }
+});
+Object.defineProperty(_window.History, 'replaceState', {
+  apply(target, thisArg, args) {
+    return;
+  }
+});
+*/
