@@ -83,9 +83,9 @@ document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
     when "application/javascript" || "application/x-javascript" || "text/javascript"
       # TODO: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
       body = "
-(function (window) {
+(function (window, globalThis.window) {
   #{response.body_io.gets_to_end}
-}({ window, ...globalThis.window }));
+}({ window, ...globalThis.window }), undefined);
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)
