@@ -32,7 +32,7 @@ let rewrite = {
   js: body => `
 (function (window, globalThis.window) {
   ${body}
-}({ window, ...globalThis.window }, undefined);
+}(_window, undefined);
   `
 };
   "
@@ -51,7 +51,7 @@ let rewrite = {
     response.headers.each do |key, value|
       # TODO: Don't remove Strict-Transport-Security if running ssl
       # TODO: Rewrite Alt-Svc instead of deleting it
-      if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
+      if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
         p "Deleting #{key}"
         cors[key] = value
         next
@@ -91,7 +91,7 @@ document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
       body = "
 (function (window, globalThis.window) {
   #{response.body_io.gets_to_end}
-}({ window, ...globalThis.window }, undefined);
+}(_window, undefined);
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)
