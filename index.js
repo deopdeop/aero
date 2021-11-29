@@ -1,3 +1,4 @@
+/*
 globalThis.observerCallback = () =>
   mutationsList.forEach(mutation => {
     if (mutation.target.href) {
@@ -57,7 +58,7 @@ _window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
     } else if (args[1].urls.startsWith('stuns'))
       console.warn("STUN connections aren't supported!");
   }
-})
+});
 
 // Privacy Middleware
 // TODO: Only include if enabled
@@ -94,7 +95,6 @@ if ('IdleDetector' in window && ctx.secure) {
     }
   });
 }
-});
 
 // TODO: On the service worker create an indexdb entry of the information instead of storing it in browsing history
 /*
