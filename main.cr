@@ -1,4 +1,5 @@
 require "http"
+require "socket"
 require "uri"
 require "json"
 require "base64"
@@ -8,10 +9,31 @@ macro rewrite_uri(url)
   "#{context.request.headers["host"]}/#{{{url}}}"
 end
 
-http = HTTP::Server.new do |context|
+def rewrite_request_headers(headers)
+  new_headers = HTTP::Headers.new
+  headers.each do |key, value|
+    case key
+    when "Host"
+      p value
+      new_headers[key] = request_uri.host.not_nil!
+    when "Referer"
+      new_headers[key] = rewrite_uri(value)
+    else
+      new_headers[key] = value
+    end
+  end
+  return new_headers
+end
+
+def http(context)
   rewrite = "
 let rewrite = {
-  url: str => /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/gm.test(str) ? `${location.origin}/${str}` : `${location.origin}/${ctx.url.origin}${str}`;
+  url: url => /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/gm.test(url) ? `${location.origin}/${url}` : `${location.origin}/${ctx.url.origin}${url}`;
+  js: body => `
+(function (window, globalThis.window) {
+  ${body}
+}({ window, ...globalThis.window }, undefined);
+  `
 };
   "
 
@@ -23,25 +45,9 @@ let rewrite = {
 
   request_uri = URI.parse(context.request.path.lchop('/'))
   
-  request_headers = HTTP::Headers.new
-  context.request.headers.each do |key, value|
-    case key
-    when "Host"
-      p request_uri.host
-      request_headers[key] = request_uri.host.not_nil!
-    when "Referer"
-      request_headers[key] = rewrite_uri(value)
-    when "Accept-Encoding"
-    else
-      request_headers[key] = value
-    end
-  end 
-
-  p request_headers
-
-  HTTP::Client.get(request_uri, request_headers) do |response|
+  HTTP::Client.get(request_uri, rewrite_request_headers(context.request.headers)) do |response|
     cors = HTTP::Headers.new
-    # TODO: Standard compliancy
+    # TODO: Standard compliance
     response.headers.each do |key, value|
       # TODO: Don't remove Strict-Transport-Security if running ssl
       # TODO: Rewrite Alt-Svc instead of deleting it
@@ -51,8 +57,8 @@ let rewrite = {
         next
       end
       if key.in? "Set-Cookie", "Set-Cookie2"
-        # TODO: Rewrite.
-      elsif key === "Location"
+        # TODO: Rewrite cookie
+      elsif key == "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
       else
         p "Keeping #{key}"
@@ -81,15 +87,15 @@ document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 </script>
       "
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      # TODO: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
+      # TODO: Implement yoct's amazing regex
       body = "
 (function (window, globalThis.window) {
   #{response.body_io.gets_to_end}
-}({ window, ...globalThis.window }), undefined);
+}({ window, ...globalThis.window }, undefined);
       "
     when "application/manifest+json"
       json = JSON.parse(response.body)
-      # TODO: Rewrite.
+      # TODO: Rewrite
       body = json.to_json
     else
       body = response.body_io.gets_to_end
@@ -99,9 +105,35 @@ document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
 end
 
 ws = HTTP::WebSocketHandler.new do |ws, context|
-  # TODO: Proxy.
-  ws.on_ping { ws.pong context.request.path }
+  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), rewrite_request_headers(context.request.headers))
+
+  ws.on_message do |message|
+    ws.send msg
+  end
+
+  ws.run
 end
 
-http.bind_tcp "127.0.0.1", 8080
-http.listen
+webrtc = TCPServer.new("localhost", true)
+while server = webrtc.accept?
+  spawn do |server|
+    client = TCPSocket.new(socket.remote_address.address, socket.remote_address.port)
+    message = server.gets
+    # TODO: Rewrite message
+    p message
+    client.puts = message
+    server.puts = client.gets
+    client.close
+  end
+end
+
+server = HTTP::Server.new([
+  http,
+  ws
+])
+
+server.bind(webrtc)
+
+# TODO: Support SSL
+server.bind_tcp "localhost", 8080
+server.listen
