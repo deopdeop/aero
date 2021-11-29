@@ -9,9 +9,15 @@ macro rewrite_uri(url)
 end
 
 http = HTTP::Server.new do |context|
-  if context.request.path === "/interceptor.js"
+  rewrite = "
+let rewrite = {
+  url: str => /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/gm.test(str) ? `${location.origin}/${str}` : `${location.origin}/${ctx.url.origin}${str}`;
+};
+  "
+
+  if context.request.path === "/sw.js"
     context.response.headers["Content-Type"] = "application/javascript"
-    context.response.print File.read("sw.js")
+    context.response.print rewrite + File.read("sw.js")
     next
   end
 
@@ -40,16 +46,16 @@ http = HTTP::Server.new do |context|
       # TODO: Don't remove Strict-Transport-Security if running ssl
       # TODO: Rewrite Alt-Svc instead of deleting it
       if key.in? "Access-Control-Allow-Credentials", "Access-Control-Allow-Origin", "Alt-Svc", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-XSS-Protection"
-        #p "Deleting #{key}"
+        p "Deleting #{key}"
         cors[key] = value
         next
       end
       if key.in? "Set-Cookie", "Set-Cookie2"
         # TODO: Rewrite.
-      elsif key === "location"
+      elsif key === "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
       else
-        #p "Keeping #{key}"
+        p "Keeping #{key}"
         context.response.headers[key] = value
       end
     end
@@ -62,10 +68,12 @@ http = HTTP::Server.new do |context|
       # TODO: If debug mode read file real time or else read in compile time
       body = "
 <script>
+#{rewrite}
+
 let ctx = {
-    cors: #{cors.to_json},
-    url: new URL('#{request_uri}')
-};  
+  cors: #{cors.to_json},
+  url: new URL('#{request_uri}')
+};
 
 #{File.read("./index.js")}
 
@@ -76,7 +84,7 @@ document.write(atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'));
       # TODO: Move all imports outside of self invoking function and redirect path to /import with regex this should fix sites like bread boy's when it loading three js, same on the browser too.
       body = "
 (function (window) {
-    #{response.body_io.gets_to_end}
+  #{response.body_io.gets_to_end}
 }({ window, ...globalThis.window }));
       "
     when "application/manifest+json"
