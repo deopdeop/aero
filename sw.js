@@ -62,7 +62,7 @@ self.addEventListener('fetch', event => {
   console.log(event.request.url);
   event.respondWith(async () => {
     let response = await event.preloadResponse;
-    response ?? = await fetch(event.request);
+    response ??= await fetch(event.request);
 
     console.log(response);
   });
