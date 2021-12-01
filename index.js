@@ -35,20 +35,14 @@ navigator.serviceWorker.register('/sw.js', {
     updateViaCache: 'none'
   })
   .then(registration => {
-    console.log(`The interceptor was registered! The scope is ${registration.scope}`);
-
     // Update service worker
     registration.update();
-    registration.addEventListener('updatefound', () => {
-      console.log`Updating ${registration.installing}`;
-    });
 
     // Share server data with the service worker
     const channel = new MessageChannel();
     registration.active.postMessage(ctx.url.origin, [channel.port2]);
 
     // Write the site's body after this script
-    console.log('Writing html');
     // document.write is blocked when 2G connections are used on chromium and if the document is loaded already it will create a new one so this is used instead
     var script = document.getElementsByTagName('script');
     script[script.length-1].insertAdjacentHTML("beforebegin", ctx.body);
@@ -105,6 +99,7 @@ if ('IdleDetector' in window && ctx.secure) {
   let UserIdleState;
   let ScreenIdleState;
   let IdleOptions;
+  
   Object.defineProperty(_window.IdleDetection.prototype, 'requestPermission', {
     apply(target, thisArg, args) {
       UserIdleState = true;
@@ -114,16 +109,19 @@ if ('IdleDetector' in window && ctx.secure) {
       return 'granted';
     }
   });
+  
   Object.defineProperty(_window.IdleDetection.prototype, 'screenState', {
     get() {
       return UserIdleState;
     }
   });
+  
   Object.defineProperty(_window.IdleDetection.prototype, 'start', {
     apply(target, thisArg, args) {
       IdleOptions = args[0];
     }
   });
+  
   Object.defineProperty(_window.IdleDetection.prototype, 'userState', {
     get() {
       return UserIdleState;
@@ -137,6 +135,7 @@ apply(target, thisArg, args) {
   return;
 }
 });
+
 Object.defineProperty(_window, 'History.replaceState', {
 apply(target, thisArg, args) {
   return;
