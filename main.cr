@@ -2,34 +2,32 @@ require "http/server"
 require "socket"
 require "yaml"
 
-config = YAML.parse({{read_file("config.yaml")}})
-
 require "./http.cr"
 
+config = YAML.parse({{read_file("config.yaml")}})
+
 macro rewrite_uri(url)
-  "#{context.request.headers["host"]}/#{{{url}}}"
+  "#{ctx.request.headers["host"]}/#{{{url}}}"
 end
 
-def handle_connection(conn)
-  client = TCPSocket.new(conn.remote_address.address, conn.remote_address.port)
-  message = conn.gets
-  # TODO: Rewrite message
-  p message
-  client.puts message
-  conn.puts client.gets
-  client.close
+wrtc = TCPServer.new(8080, 1, nil, true)
+while conn = webrtc.accept?
+  spawn do |conn|
+    client = TCPSocket.new(conn.remote_address.address, conn.remote_address.port)
+    msg = conn.gets
+    # TODO: Rewrite message
+    p sg
+    client.puts msg
+    conn.puts client.gets
+    client.close
+  end
 end
 
-#webrtc = TCPServer.new("localhost", 8080, 1, nil, true)
-#while conn = webrtc.accept?
-#  spawn handle_connection(conn)
-#end
-
-ws = HTTP::WebSocketHandler.new do |ws, context|
-  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
+ws = HTTP::WebSocketHandler.new do |ws, ctx|
+  ws = HTTP::WebSocket.new(ctx.request.path.lchop('/'), ctx.request.headers)
   
-  ws.on_message do |message|
-    ws.send message
+  ws.on_message do |msg|
+    ws.send msg
   end
 
   ws.run
@@ -40,7 +38,4 @@ server = HTTP::Server.new([
   ws
 ])
 
-#server.bind(webrtc)
-
-server.bind_tcp "localhost", 8080
-server.listen
+server.bind(wrtc)
