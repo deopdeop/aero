@@ -1,5 +1,8 @@
 require "http/server"
 require "socket"
+require "yaml"
+
+config = YAML.parse({{read_file("config.yaml")}})
 
 require "./http.cr"
 
