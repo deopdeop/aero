@@ -2,18 +2,22 @@ let rewrite = {
   url: url => {
     if (url.startsWith('data:'))
       return url;
+    if (url.startsWith('./'))
+      url = url.splice(2);
       
-    if (/\b(https?|ftp|file):\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/.test(url)) {
-      console.log('Valid url')
+    if (url.startsWith('http')) {
       return `${location.origin}/${url}`;
     } else {
-      console.log('Invalid url');
-      return `${location.origin}/${ctx.url.origin}/${url}`;
+      // TEMPORARY PATCH - TO FIX ENSURE THE CTX IS SENT BEFORE SENDING REQUEST
+      if (!ctx) {
+        var ctx = { url: { origin: "https://www.google.com" } };
+      }
+      return `${location.origin}/${ctx.url.origin}${url.startsWith('/') ? '' : '/'}${url}`;
     }
   },
   js: body => `
-  (function (window, globalThis.window) {
+  (function (window.document.scripts, observerCallback, _window) {
     ${body}
-  }(_window, undefined)
+  }(_window.document.scripts, undefined, undefined)
     `
 };
