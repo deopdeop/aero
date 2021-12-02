@@ -20,19 +20,16 @@ self.addEventListener('activate', event => {
   event.waitUntil(self.clients.claim());
 });
 
-let ctx;
+let context;
 
 self.addEventListener('message', event => {
-  ctx = { url: { origin: event.data } };
+  context = { url: { origin: event.data } };
 })
 
 // TODO: Remove all of the rewriters from the mutation observer since they won't be needed only href is needed
 addEventListener('fetch', event => {
-  console.log`Fetched ${event.request.url} for ${event.request.mode}`;
+  console.log`Fetched ${event.request.url.href} for ${event.request.mode}`;
 
-  // TODO: Rewrite url and body
-
-  // TODO: Rewrite and copy ctx.headers
   console.log(event.request.headers);
 
   event.respondWith(async function() {
@@ -40,8 +37,7 @@ addEventListener('fetch', event => {
     if (response)
       console.log('Preloaded response found using it')
 
-    //response ??= fetch(event.request);
-    response ??= fetch(rewrite.url(event.request.url.split(location.origin)[1]));
+    response ??= await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
 
     console.log(response);
 

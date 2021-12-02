@@ -1,24 +1,34 @@
-globalThis.observerCallback = (mutations, observer) => {
-  // BIG mess lol
-  for (mutation of mutations) {
-    for (node of mutation.addedNodes) {
-      if (node instanceof Element) {
-        if (node.children) {
-          for (node of node.children)
-            if (node instanceof Element) {
-              for (node of node.children)
-                if (node instanceof Element) {
-                  if (node.tagName === "A" && node.href) {
-                    node._href = node.href;
-                    node.href = rewrite.url(node.href);
-                  }
-                }
-            }
-        }
-      }
-    }
-  }
+rewrite = {
+  script: body => `
+{
+  window.document.scripts = _window.document.scripts;
+   _window = undefined;
+    
+  ${body}
 }
+  `,
+  element: element => {
+    if (node.tagName === "A" && node.href) {
+      node._href = node.href;
+      node.href = node.href;
+    }
+  },
+  ...rewrite
+}
+
+// TODO: Prevent duplicate rewrites
+globalThis.observerCallback = (mutations, observer) =>
+  mutations.forEach(mutation => mutation.addedNodes.filter(node => node instanceof Element).forEach(element => {
+    Array.concat(element.getElementsByName('A'), element.getElementsByName('AREA')).filter(element => 'href' in element).forEach(link => {
+      // TODO: Conceal href
+      link._href = link.href;
+      link.href = url.rewrite(link.href)
+    });
+    // TODO: Store original value
+    element.getElementsByName('SCRIPT').filter(script => script.text = rewrite.script(element.innerHTML))
+    // TODO: Rewrite attributes
+  }));
+
 new MutationObserver(globalThis.observerCallback)
   .observe(
     document.documentElement, {
@@ -40,23 +50,23 @@ navigator.serviceWorker.register('/sw.js', {
 
     // Share server data with the service worker
     const channel = new MessageChannel();
-    registration.active.postMessage(ctx.url.origin, [channel.port2]);
+    registration.active.postMessage(context.url.origin, [channel.port2]);
 
     // Write the site's body after this script
     // document.write is blocked when 2G connections are used on chromium and if the document is loaded already it will create a new one so this is used instead
     var script = document.getElementsByTagName('script');
-    script[script.length-1].insertAdjacentHTML("beforebegin", ctx.body);
+    script[script.length-1].insertAdjacentHTML("beforebegin", context.body);
   });
 
 // TODO: Instead of overwritting window overwrite specific properties for performance in the self invoking function
 globalThis._window = {};
 
-Object.defineProperty(_window, 'document.cookie', {
+_window.document.cookie = new Proxy(document.cookie, {
   get(target, prop) {
-    // TODO: Rewrite cookie
-    return '';
+    // TODO: Rewrite
+    return Reflect.get(...arguments);
   }
-});
+})
 
 // This might not be needed; I am adding this just to be safe, remove if not needed
 Object.defineProperty(_window, 'document.scripts', {
@@ -68,7 +78,13 @@ Object.defineProperty(_window, 'document.scripts', {
 
 Object.defineProperty(_window, 'location', {
   get(target, prop) {
-    return ctx.url[prop];
+    return context.url[prop];
+  }
+});
+
+Object.defineProperty(_window, 'origin', {
+  get() {
+    return context.url.origin;
   }
 });
 
