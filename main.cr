@@ -48,8 +48,6 @@ http = HTTP::Server.new do |context|
 
     context.response.status_code = response.status_code
 
-    p cors
-
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       body = "
