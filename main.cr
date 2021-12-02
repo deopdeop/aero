@@ -30,12 +30,9 @@ http = HTTP::Server.new do |context|
     end
   end
 
-  p request_headers
-
   HTTP::Client.get(request_uri, request_headers) do |response|
     cors = HTTP::Headers.new
     response.headers.each do |key, value|
-      # TODO: Convert to switch statement
       case key
       when "Access-Control-Allow-Credentials" || "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
         cors[key] = value
