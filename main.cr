@@ -2,6 +2,7 @@ require "http/server"
 require "socket"
 require "yaml"
 
+# FIXME: config.path is undefined
 config = YAML.parse(File.read("config.yaml"))
 
 macro rewrite_uri(url)
@@ -9,9 +10,10 @@ macro rewrite_uri(url)
 end
 
 http = HTTP::Server.new do |context|
+  # TODO: Use static file handler
   if context.request.path === "/sw.js"
     context.response.headers["Content-Type"] = "application/javascript"
-    context.response.print File.read("./rewrite.js") + File.read("sw.js")
+    context.response.print File.read("rewrite.js") + File.read("sw.js")
     next
   end
 
@@ -34,20 +36,26 @@ http = HTTP::Server.new do |context|
     cors = HTTP::Headers.new
     response.headers.each do |key, value|
       case key
-      when "Access-Control-Allow-Credentials" || "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
+      when "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
         cors[key] = value
-      when "Set-Cookie" || "Set-Cookie2"
-        # TODO: Rewrite cookie
       when "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
+      when "Set-Cookie" || "Set-Cookie2"
+        # TODO: Rewrite cookie
       else
         context.response.headers[key] = value
       end
     end
-    context.response.headers.add("Service-Worker-Allowed", "/")
+    # Please tell me if there are any unneeded headers I can remove
+    # Don't let any requests escape origin
+    context.response.headers.add("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+    context.response.headers.add("Cross-Origin-Embedder-Policy", "require-corp")
+    context.response.headers.add("Cross-Origin-Resource-Policy", "same-origin")
+    context.response.headers.add("Service-Worker-Allowed", '/')
 
     context.response.status_code = response.status_code
 
+    # TODO: Convert responses to ecr
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       body = "
@@ -57,7 +65,7 @@ http = HTTP::Server.new do |context|
 </head>
 <body>
   <script>
-    #{File.read("./rewrite.js")}
+    #{File.read("rewrite.js")}
 
     let context = {
       body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
@@ -65,7 +73,7 @@ http = HTTP::Server.new do |context|
       url: new URL('#{request_uri}')
     };
 
-    #{File.read("./index.js")}
+    #{File.read("index.js")}
   </script>
 </body>
     "
@@ -74,7 +82,7 @@ http = HTTP::Server.new do |context|
 {
   window.document.scripts = _window.document.scripts;
   _window = undefined;
-        
+
   #{body}
 }
         "
@@ -91,15 +99,16 @@ end
 
 ws = HTTP::WebSocketHandler.new do |ws, context|
   ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
-    
+
   ws.on_message do |message|
     ws.send message
   end
-  
+
   ws.run
 end
 
 server = HTTP::Server.new([
+  HTTP::StaticFileHandler.new("/static"),
   http,
-  ws
+  ws,
 ]).listen(config.port)
