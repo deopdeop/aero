@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <!-- Reset favicon -->
+        <link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/>
+    </head>
+    <body>
+        <script>
+            let context = {
+              body: atob('<% Base64.strict_encode(response.body_io.gets_to_end) %>'),
+              cors: <% cors.to_json %>,
+              url: new URL('<% request_uri %>')
+            };
+
+            <% File.read("index.js") %>
+        </script>
+    </body>
+</html>

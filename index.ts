@@ -1,3 +1,5 @@
+/// <reference path="rewrite.ts" />
+
 rewrite = {
   script: body => `
 {
@@ -55,7 +57,7 @@ navigator.serviceWorker.register('/sw.js', {
     // Write the site's body after this script
     // document.write is blocked when 2G connections are used on chromium and if the document is loaded already it will create a new one so this is used instead
     var script = document.getElementsByTagName('script');
-    script[script.length-1].insertAdjacentHTML("beforebegin", context.body);
+    script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
   });
 
 // TODO: Instead of overwritting window overwrite specific properties for performance in the self invoking function

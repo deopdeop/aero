@@ -1,21 +1,21 @@
 {
     "name": "aero",
-    "description": "A revolutionary standard-compliant modular interception web proxy concept written in crystal and javascript that pioneers future of proxies. This supports every site by strictly adhering to all web standards, speed by minimal asynchronous server code, and by fast interception techniques that we've invented.",
+    "description": "A new interception proxy concept written in Crystal and Javascript",
     "keywords": [
-      "crystal",
-      "proxy",
-      "web-proxy",
-      "hacktoberfest",
-      "unblocker",
-      "unblock",
-      "titaniumnetwork"
+        "crystal",
+        "proxy",
+        "web-proxy",
+        "hacktoberfest",
+        "unblocker",
+        "unblock",
+        "titaniumnetwork"
     ],
     "repository": "https://github.com/titaniumnetwork-dev/aero",
     "image": "crystal-lang/crystal",
     "buildpacks": [
-      {
-        "url": "https://github.com/crystal-lang/heroku-buildpack-crystal"
-      }
+        {
+            "url": "https://github.com/crystal-lang/heroku-buildpack-crystal"
+        }
     ]
-  }
+}
   

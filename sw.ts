@@ -1,3 +1,5 @@
+/// <reference path="rewrite.ts" />
+
 self.addEventListener('install', event => {
   console.log('Installed', event);
 
@@ -9,12 +11,10 @@ self.addEventListener('activate', event => {
   console.log('Activated', event);
 
   // FIXME: Breaks on chromium
-  /*
   event.waitUntil((async function() {
     if (self.registration.navigationPreload)
       await self.registration.navigationPreload.enable();
   })());
-  */
 
   // Use the service worker immediately instead of after reload
   event.waitUntil(self.clients.claim());

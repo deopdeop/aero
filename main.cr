@@ -1,5 +1,7 @@
 require "http/server"
 require "socket"
+require "uri"
+require "json"
 require "yaml"
 
 # FIXME: config.path is undefined
@@ -9,15 +11,27 @@ macro rewrite_uri(url)
   "#{context.request.headers["host"]}/#{{{url}}}"
 end
 
-http = HTTP::Server.new do |context|
-  # TODO: Use static file handler
+ws = HTTP::WebSocketHandler.new do |ws, context|
+  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
+
+  ws.on_message do |message|
+    ws.send message
+  end
+
+  ws.run
+end
+
+server = HTTP::Server.new([
+  HTTP::StaticFileHandler.new("./static", true, false),
+  ws,
+]) do |context|
   if context.request.path === "/sw.js"
     context.response.headers["Content-Type"] = "application/javascript"
     context.response.print File.read("rewrite.js") + File.read("sw.js")
     next
   end
 
-  request_uri = URI.parse(context.request.path.lchop('/'))
+  request_uri = URI.parse(URI.decode(context.request.path.lchop(config.path)))
 
   request_headers = HTTP::Headers.new
   context.request.headers.each do |key, value|
@@ -51,41 +65,15 @@ http = HTTP::Server.new do |context|
     context.response.headers.add("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
     context.response.headers.add("Cross-Origin-Embedder-Policy", "require-corp")
     context.response.headers.add("Cross-Origin-Resource-Policy", "same-origin")
-    context.response.headers.add("Service-Worker-Allowed", '/')
+    context.response.headers.add("Service-Worker-Allowed", "/")
 
     context.response.status_code = response.status_code
 
-    # TODO: Convert responses to ecr
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
-      body = "
-<head>
-<!-- Reset favicon -->
-<link href=\"data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=\" rel=\"icon\" type=\"image/x-icon\" />
-</head>
-<body>
-  <script>
-    #{File.read("rewrite.js")}
-
-    let context = {
-      body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
-      cors: #{cors.to_json},
-      url: new URL('#{request_uri}')
-    };
-
-    #{File.read("index.js")}
-  </script>
-</body>
-    "
+      body = ECR.def_to_s "html.ecr"
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      body = "
-{
-  window.document.scripts = _window.document.scripts;
-  _window = undefined;
-
-  #{body}
-}
-        "
+      body = ECR.def_to_s "js.ecr"
     when "application/manifest+json"
       json = JSON.parse(response.body)
       # TODO: Rewrite
@@ -93,22 +81,8 @@ http = HTTP::Server.new do |context|
     else
       body = response.body_io.gets_to_end
     end
-    context.response.print body
+    context.response << body
   end
 end
 
-ws = HTTP::WebSocketHandler.new do |ws, context|
-  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
-
-  ws.on_message do |message|
-    ws.send message
-  end
-
-  ws.run
-end
-
-server = HTTP::Server.new([
-  HTTP::StaticFileHandler.new("/static"),
-  http,
-  ws,
-]).listen(config.port)
+server.listen(config.port)
