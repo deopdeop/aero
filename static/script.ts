@@ -8,7 +8,6 @@ const go = () => {
     } else {
         window.location.href = "/service/" + "https://searx.degenerate.info/search?q=" + url.replace(/ /g, "+");
     }
-  }
 }
 
 window.addEventListener("load", function() {
