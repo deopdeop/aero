@@ -1,34 +1,55 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Aero</title>
-      <meta name="description" content="A new interception proxy concept written in Crystal and Javascript">
-      <meta property="og:image" content="./aero.png">
-      <meta name="theme-color" content="#1473E0" >
-      <link rel="stylesheet" href="./fontawesome.min.css">
-      <link href="./style.css" rel="stylesheet">
-   </head>
-   <body>
-      <div>
-         <h1 class="title">Aero</h1>
-         <div style="text-align: center;">
-            <div class="searchbar">
-               <input autofocus id="search" autocomplete="off" placeholder="Search or type a URL">
-               <button class="go"><i class="fa fa-search"></i></button>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Aero</title>
+        <meta name="description" content="A new interception proxy concept written in Crystal and Javascript">
+        <!-- For embeds -->
+        <meta property="og:image" content="./aero.png">
+        <meta name="theme-color" content="#1473E0">
+        <!-- TOOD: Store locally -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link href="./style.css" rel="stylesheet">
+    </head>
+    <body>
+        <div>
+            <h1 class="title">Aero</h1>
+            <div style="text-align: center;">
+                <div class="searchbar">
+                    <input autofocus id="search" autocomplete="off" placeholder="Search or type a URL">
+                    <button class="go"><i class="fa fa-search"></i></button>
+                </div>
+                <div style="display: block; height: 3vh;"></div>
+                <!-- <a id = "about" href = "/about">What is Aero?</a> -->
+                <div class="icons-pos">
+                    <span class="icons"><a class="icon" href="https://github.com/titaniumnetwork-dev/aero" target="_blank"><i class="fab fa-github"></i></a><a class="icon" href="https://discord.gg/CwGW5ueYVV" target="_blank"><i class="fab fa-discord"></i></a></span>
+                </div>
             </div>
-            <div style = "display: block; height: 3vh;"></div>
-            <!-- <a id = "about" href = "/about">What is Aero?</a> -->
-            <div class="icons-pos">
-               <div class="icons">
-                  <a class="icon" href="https://github.com/titaniumnetwork-dev/aero" target="_blank"><i class="fab fa-github"></i></a>
-                  <a class="icon" href="https://discord.gg/CwGW5ueYVV" target="_blank"><i class="fab fa-discord"></i></a>
-               </div>
-            </div>
-         </div>
-      </div>
-      <script src="./script.js"></script>
-   </body>
-</html>
+        </div>
+        <script>
+        const go = () => {
+            const redirectTo = url => window.location.href = `/go/${btoa(url)}`;
 
+            const url = document.getElementById('search').value;
+            if (url !== '') {
+                if (url.includes('.') && !url.includes(' ', /^ *$/))
+                    redirectTo(url.substring(0, 4) === 'http' ? url : 'https://' + url);
+                else if (url.includes('.') && !url.includes(' ', /^ *$/))
+                    redirectTo(url.substring(0, 4) === 'http' ? url : 'https://' + url);
+                else
+                    redirectTo(`https://search.brave.com/search?q=${url.replace(/ /g, '+'}`);
+            }
+
+            window.addEventListener("load", function() {
+                document.querySelector(".go").addEventListener("click", go);
+                const search = document.getElementById("search");
+                search.addEventListener("keyup", event => {
+                    event.preventDefault();
+                    event.keyCode == 13 && search.value !== '' && go();
+                });
+            });
+        };
+        </script>
+    </body>
+</html>

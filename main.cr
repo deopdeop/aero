@@ -12,7 +12,7 @@ macro rewrite_uri(url)
 end
 
 ws = HTTP::WebSocketHandler.new do |ws, context|
-  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
+  ws = HTTP::WebSocket.new(context.request.path.lchop(config.path), context.request.headers)
 
   ws.on_message do |message|
     ws.send message
@@ -22,21 +22,16 @@ ws = HTTP::WebSocketHandler.new do |ws, context|
 end
 
 server = HTTP::Server.new([
-  HTTP::StaticFileHandler.new("./static", true, false),
+  HTTP::StaticFileHandler.new("./static", true, true),
   ws,
 ]) do |context|
-  if context.request.path === "/sw.js"
-    context.response.headers["Content-Type"] = "application/javascript"
-    context.response.print File.read("rewrite.js") + File.read("sw.js")
-    next
-  end
-
   request_uri = URI.parse(URI.decode(context.request.path.lchop(config.path)))
 
   request_headers = HTTP::Headers.new
   context.request.headers.each do |key, value|
     case key
-    when "Accept-Encoding" || "Cache-Control" || "Sec-Fetch-Site" || "Service-Worker" || "X-Forwarded-For" || "X-Forwarded-Host"
+    # TODO: Only delete the Service-Worker if the service worker isn't the interceptor
+    when "Accept-Encoding" || "Cache-Control" || "Service-Worker" || "X-Forwarded-For" || "X-Forwarded-Host"
     when "Host"
       request_headers[key] = request_uri.host.not_nil!
     when "Referrer"
@@ -50,12 +45,10 @@ server = HTTP::Server.new([
     cors = HTTP::Headers.new
     response.headers.each do |key, value|
       case key
-      when "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
+      when "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Set-Cookie" || "Set-Cookie2" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
         cors[key] = value
       when "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
-      when "Set-Cookie" || "Set-Cookie2"
-        # TODO: Rewrite cookie
       else
         context.response.headers[key] = value
       end
@@ -71,13 +64,9 @@ server = HTTP::Server.new([
 
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
-      body = ECR.def_to_s "html.ecr"
+      body = ECR.def_to_s "main.html"
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      body = ECR.def_to_s "js.ecr"
-    when "application/manifest+json"
-      json = JSON.parse(response.body)
-      # TODO: Rewrite
-      body = json.to_json
+      body = ECR.def_to_s "main.js"
     else
       body = response.body_io.gets_to_end
     end
