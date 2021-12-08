@@ -61,6 +61,8 @@ server = HTTP::Server.new([
 
     context.response.status_code = response.status_code
 
+    p cors.to_json
+
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       body = <<-HTML
@@ -69,7 +71,7 @@ server = HTTP::Server.new([
           <head>
             <!-- Reset favicon -->
             <link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/> 
-            <link rel="manifest" href=".appmanifest"/>
+            <!-- <link rel="manifest" href=".appmanifest"/> -->
           </head>
           <body>
             <script>

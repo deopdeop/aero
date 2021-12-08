@@ -1,5 +1,5 @@
 const go = () => {
-    const redirectTo = url => window.location.href = `/go/${btoa(url)}`;
+    const redirectTo = url => window.location.href = `/${btoa(url)}`;
 
     const url = document.getElementById('search').value;
     if (url !== '') {
