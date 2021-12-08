@@ -5,14 +5,14 @@ require "json"
 require "yaml"
 
 # FIXME: config.path is undefined
-config = YAML.parse(File.read("config.yaml"))
+config = YAML.parse(File.read("./config.yaml"))
 
 macro rewrite_uri(url)
   "#{context.request.headers["host"]}/#{{{url}}}"
 end
 
 ws = HTTP::WebSocketHandler.new do |ws, context|
-  ws = HTTP::WebSocket.new(context.request.path.lchop(config.path), context.request.headers)
+  ws = HTTP::WebSocket.new(context.request.path.lchop('/'), context.request.headers)
 
   ws.on_message do |message|
     ws.send message
@@ -22,10 +22,10 @@ ws = HTTP::WebSocketHandler.new do |ws, context|
 end
 
 server = HTTP::Server.new([
-  HTTP::StaticFileHandler.new("./static", true, true),
+  # HTTP::StaticFileHandler.new("./static", true, true),
   ws,
 ]) do |context|
-  request_uri = URI.parse(URI.decode(context.request.path.lchop(config.path)))
+  request_uri = URI.parse(URI.decode(context.request.path.lchop('/')))
 
   request_headers = HTTP::Headers.new
   context.request.headers.each do |key, value|
@@ -35,7 +35,7 @@ server = HTTP::Server.new([
     when "Host"
       request_headers[key] = request_uri.host.not_nil!
     when "Referrer"
-      # TODO: Unescape url
+      request_headers[key] = request_headers["_Referrer"]
     else
       request_headers[key] = value
     end
@@ -53,7 +53,6 @@ server = HTTP::Server.new([
         context.response.headers[key] = value
       end
     end
-    # Please tell me if there are any unneeded headers I can remove
     # Don't let any requests escape origin
     context.response.headers.add("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
     context.response.headers.add("Cross-Origin-Embedder-Policy", "require-corp")
@@ -64,9 +63,38 @@ server = HTTP::Server.new([
 
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
-      body = ECR.def_to_s "main.html"
+      body = <<-HTML
+					<!DOCTYPE html>
+					<html>
+						<head>
+							<!-- Reset favicon -->
+							<link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/> 
+							<link rel="manifest" href=".appmanifest"/>
+						</head>
+
+						<body>
+							<script>
+								let context = {
+										body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
+										cors: {
+												#{cors.to_json}
+										},
+										url: new URL('#{request_uri}')
+								};
+										
+								#{File.read("index.js")}
+							</script>
+						</body>
+					</html>
+    	HTML
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      body = ECR.def_to_s "main.js"
+      body = <<-CODE
+			{
+					_window = undefined;
+
+					#{response.body_io.gets_to_end}
+			}
+			CODE
     else
       body = response.body_io.gets_to_end
     end
@@ -74,4 +102,4 @@ server = HTTP::Server.new([
   end
 end
 
-server.listen(config.port)
+server.listen(3000)

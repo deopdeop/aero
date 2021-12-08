@@ -1,137 +1,148 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
 
 * {
-  font-family: Space Mono;
+	font-family: 'Space Mono';
 }
+
 html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
 }
+
 body > div {
-    height: 100%;
-    overflow: scroll;
-    -webkit-overflow-scrolling: touch;
+	height: 100%;
+	overflow: scroll;
+	-webkit-overflow-scrolling: touch;
 }
+
 body {
-  background: #202124;
+	background: #202124;
 }
 
 .searchbar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .title {
-  color: white;
-  text-align: center;
-  font-size: 65px;
-  margin-top: 15%
+	color: white;
+	text-align: center;
+	font-size: 6em;
+	margin-top: 15%;
+	margin-bottom: .5em;
 }
 
 img {
-  pointer-events: none; /*used to make image non-selectable | remove this comment after it is seen*/
+	pointer-events: none;
+ /*used to make image non-selectable | remove this comment after it is seen*/;
 }
 
 #search {
-  color: white;
-  background: transparent;
-  outline: none;
-  border: 1px solid #5f6368;
-  height: 44px;
-  width: 45%;
-  border-radius: 15px 0 0 15px;
-  padding-left: 15px;
-  font-size: 16px;
-  border-right: none;
+	color: white;
+	background: transparent;
+	outline: none;
+	border: 1px solid #5f6368;
+	height: 44px;
+	width: 45%;
+	border-radius: 15px 0 0 15px;
+	padding-left: 15px;
+	font-size: 16px;
+	border-right: none;
 }
+
 @media screen and (max-width: 1000px) {
-  #search {
-    width:70%;
-  }
+	#search {
+		width: 70%;
+	}
 }
+
 .go {
-  color: white;
-  background: transparent;
-  height: 48px;
-  font-size: 16px;
-  border-radius: 0 15px 15px 0;
-  border: 1px solid #5f6368;
-  cursor: pointer;
-  width: 48px;
-  transition: 1s;
+	color: white;
+	background: transparent;
+	height: 48px;
+	font-size: 16px;
+	border-radius: 0 15px 15px 0;
+	border: 1px solid #5f6368;
+	cursor: pointer;
+	width: 48px;
+	transition: 1s;
 }
 
 .go:hover {
-  background: #5f6368;
-  background: white;
-  color: black;
+	background: #5f6368;
+	background: white;
+	color: black;
 }
 
 .icons-pos {
-  position: fixed;
-  bottom: 10px;
-  width: 100%;
+	position: fixed;
+	bottom: 10px;
+	width: 100%;
 }
 
 .icons {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .icon {
-  border-radius: 50%;
-  border: 1px solid #5f6368;
-  width: 45px;
-  height: 45px;
-  font-size: 20px;
-  display: flex;
-  margin-right: 3px;
-  margin-left: 3px;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background-color:#202124;
-  transition-duration:1s;
+	border-radius: 50%;
+	border: 1px solid #5f6368;
+	width: 45px;
+	height: 45px;
+	font-size: 20px;
+	display: flex;
+	margin-right: 3px;
+	margin-left: 3px;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	background-color: #202124;
+	transition-duration: 1s;
 }
 
 .icon:hover {
-  background-color:white;
-  color:#202124;
-  border: 1px solid white;
+	background-color: white;
+	color: #202124;
+	border: 1px solid white;
 }
 
 a {
-  text-decoration: none;
-  color: white;
+	text-decoration: none;
+	color: white;
 }
+
 img {
   /* transform: scale(0.7); */
-  width:50vh;
+	width: 50vh;
 }
+
 #about {
-  color:dodgerblue;
-  position: relative;
-  text-decoration: none;
+	color: dodgerblue;
+	position: relative;
+	text-decoration: none;
 }
+
 #about::before {
-  content: "";
-  position: absolute;
-  display: block;
-  width: 100%;
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: dodgerblue;
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
+	content: "";
+	position: absolute;
+	display: block;
+	width: 100%;
+	height: 2px;
+	bottom: 0;
+	left: 0;
+	background-color: dodgerblue;
+	transform: scaleX(0);
+	transition: transform 0.3s ease;
 }
+
 #about:hover::before {
-  transform: scaleX(1);
+	transform: scaleX(1);
 }
 
 ::-webkit-scrollbar {
-    display: none;
+	display: none;
 }
