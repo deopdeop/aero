@@ -87,13 +87,13 @@ server = HTTP::Server.new([
         </html>
       HTML
     when "application/javascript" || "application/x-javascript" || "text/javascript"
-      body = <<-CODE
+      body = <<-JS
         {
           _window = undefined;
 
           #{response.body_io.gets_to_end}
         }
-      CODE
+      JS
     else
       body = response.body_io.gets_to_end
     end
