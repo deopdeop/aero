@@ -64,37 +64,36 @@ server = HTTP::Server.new([
     case response.headers["content-type"].split(';').first
     when "text/html" || "text/x-html"
       body = <<-HTML
-					<!DOCTYPE html>
-					<html>
-						<head>
-							<!-- Reset favicon -->
-							<link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/> 
-							<link rel="manifest" href=".appmanifest"/>
-						</head>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <!-- Reset favicon -->
+            <link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/> 
+            <link rel="manifest" href=".appmanifest"/>
+          </head>
+          <body>
+            <script>
+              let context = {
+                body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
+                cors: {
+                  #{cors.to_json}
+                },
+                url: new URL('#{request_uri}')
+              };
 
-						<body>
-							<script>
-								let context = {
-										body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
-										cors: {
-												#{cors.to_json}
-										},
-										url: new URL('#{request_uri}')
-								};
-										
-								#{File.read("index.js")}
-							</script>
-						</body>
-					</html>
-    	HTML
+              #{File.read("index.js")}
+            </script>
+          </body>
+        </html>
+      HTML
     when "application/javascript" || "application/x-javascript" || "text/javascript"
       body = <<-CODE
-			{
-					_window = undefined;
+        {
+          _window = undefined;
 
-					#{response.body_io.gets_to_end}
-			}
-			CODE
+          #{response.body_io.gets_to_end}
+        }
+      CODE
     else
       body = response.body_io.gets_to_end
     end
