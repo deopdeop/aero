@@ -1,3 +1,9 @@
+image:
+  file: .gitpod.Dockerfile
+
+vscode:
+  extensions:
+    - faustinoaq.crystal-lang@0.3.14:C7cVEQO67LPca96xxyECog==
 # Commands to start on workspace startup
 tasks:
   - command: crystal run main.cr
