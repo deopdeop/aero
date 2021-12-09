@@ -22,9 +22,14 @@ ws = HTTP::WebSocketHandler.new do |ws, context|
 end
 
 server = HTTP::Server.new([
-  # HTTP::StaticFileHandler.new("./static", true, true),
-  ws,
+  ws
 ]) do |context|
+  # This is cringe did not want to resort to this mess. Can a dev here at least make a basic static file handler class and run it inside of the middleware?
+  folder = "static/"
+  case context.request.path.lchop('/'))
+  when "/"
+    File.read("#{folder}/index.html}")
+
   request_uri = URI.parse(URI.decode(context.request.path.lchop('/')))
 
   request_headers = HTTP::Headers.new
@@ -46,7 +51,7 @@ server = HTTP::Server.new([
     response.headers.each do |key, value|
       case key
       when "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Set-Cookie" || "Set-Cookie2" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
-        cors[key] = value
+        cors.add(key, value)
       when "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
       else
@@ -75,11 +80,11 @@ server = HTTP::Server.new([
           </head>
           <body>
             <script>
+              'use strict'
+
               let context = {
                 body: atob('#{Base64.strict_encode(response.body_io.gets_to_end)}'),
-                cors: {
-                  #{cors.to_json}
-                },
+                cors: #{cors.to_json},
                 url: new URL('#{request_uri}')
               };
 
