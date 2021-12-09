@@ -5,7 +5,7 @@ require "json"
 require "yaml"
 
 # FIXME: config.path is undefined
-config = YAML.parse(File.read("./config.yaml"))
+config = YAML.parse(File.read("./config.yml"))
 
 macro rewrite_uri(url)
   "#{context.request.headers["host"]}/#{{{url}}}"
@@ -88,7 +88,7 @@ server = HTTP::Server.new([
                 url: new URL('#{request_uri}')
               };
 
-              #{File.read("index.js")}
+              #{File.read("static/index.js")}
             </script>
           </body>
         </html>
