@@ -83,7 +83,7 @@ server = HTTP::Server.new([
                 url: new URL('#{request_uri}')
               };
 
-              #{File.read("index.js")}
+              #{File.read("static/index.js")}
             </script>
           </body>
         </html>
