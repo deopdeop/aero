@@ -97,7 +97,7 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	<!DOCTYPE html>
         	<html>
         	  <head>
-				<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        	    <meta charset="utf-8">
 
         	    <!-- Reset favicon -->
         	    <link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon"/>
