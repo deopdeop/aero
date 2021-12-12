@@ -27,10 +27,10 @@ server = HTTP::Server.new([
   folder = "static/"
   case context.request.path.lchop('/'))
   when "/"
-    File.read("#{folder}/index.html")
+    context.response << File.read("#{folder}/index.html")
     next
   when "/sw.js"
-    File.read("#{folder}/sw.js")
+    context.response << File.read("#{folder}/sw.js")
     next
   end
 
