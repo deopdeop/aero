@@ -24,6 +24,12 @@ end
 server = HTTP::Server.new([
   ws
 ]) do |context|
+  folder = "static/"
+  case context.request.path.lchop('/'))
+  when "/"
+    File.read("#{folder}/index.html}")
+  end
+
   request_uri = URI.parse(URI.decode(context.request.path.lchop('/')))
 
   request_headers = HTTP::Headers.new
