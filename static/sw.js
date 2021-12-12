@@ -44,14 +44,11 @@ self.addEventListener('message', event => {
       - Only allow the top level document establish a context
       - Add and rewrite every cookie from set cookie headers using the cookie store api
   */
-  /*
   context = {
       url: {
           origin: event.data
       }
   };
-  */
-  client.type === 'window' && true;
 })
 
 // TODO: Remove all of the rewriters from the mutation observer since they won't be needed only href is needed
