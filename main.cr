@@ -51,7 +51,7 @@ server = HTTP::Server.new([
     response.headers.each do |key, value|
       case key
       when "Access-Control-Allow-Origin" || "Alt-Svc" || "Cache-Control" || "Content-Encoding" || "Content-Length" || "Content-Security-Policy" || "Cross-Origin-Resource-Policy" || "Permissions-Policy" || "Set-Cookie" || "Set-Cookie2" || "Service-Worker-Allowed" || "Strict-Transport-Security" || "Timing-Allow-Origin" || "X-Frame-Options" || "X-XSS-Protection"
-        cors.add(key, value)
+        cors[key] = value
       when "Location"
         context.response.headers[key] = "http://#{rewrite_uri(value.first)}"
       else
