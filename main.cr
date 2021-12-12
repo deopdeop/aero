@@ -24,12 +24,6 @@ end
 server = HTTP::Server.new([
   ws
 ]) do |context|
-  # This is cringe did not want to resort to this mess. Can a dev here at least make a basic static file handler class and run it inside of the middleware?
-  folder = "static/"
-  case context.request.path.lchop('/'))
-  when "/"
-    File.read("#{folder}/index.html}")
-
   request_uri = URI.parse(URI.decode(context.request.path.lchop('/')))
 
   request_headers = HTTP::Headers.new
