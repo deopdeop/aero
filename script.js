@@ -55,23 +55,23 @@ window.addEventListener('message', event => console.log(event), {
 // TODO: If the beforeunload event interceptor idea doesn't work on forms try SubmitEvent
 
 navigator.serviceWorker.register('/sw.js', {
-    // The Allow-Service-Worker header must be set to / for the scope to be allowed
-    scope: context.path,
-    // Don't cache http requests
-    updateViaCache: 'none'
-  })
-  .then(registration => {
-    // Update service worker
-    registration.update();
+  // The Allow-Service-Worker header must be set to / for the scope to be allowed
+  scope: context.path,
+  // Don't cache http requests
+  updateViaCache: 'none'
+})
+    .then(registration => {
+      // Update service worker
+      registration.update();
 
-    // Share server data with the service worker
-    const channel = new MessageChannel();
-    registration.active.postMessage(context.url.origin, [channel.port2]);
+      // Share server data with the service worker
+      const channel = new MessageChannel();
+      registration.active.postMessage(context.url.origin, [channel.port2]);
 
-    // Write the site's body after this script
-    var script = document.getElementsByTagName('script');
-    script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
-  });
+      // Write the site's body after this script
+      var script = document.getElementsByTagName('script');
+      script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
+    });
 
 // Allow the service worker to send messages before the dom's content is loaded
 navigator.serviceWorker.startMessages();
