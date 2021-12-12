@@ -24,8 +24,8 @@ end
 server = HTTP::Server.new([
   ws
 ]) do |context|
-  folder = "static/"
-  case context.request.path.lchop('/'))
+  folder = "static"
+  case context.request.path
   when "/"
     context.response << File.read("#{folder}/index.html")
     next
