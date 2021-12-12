@@ -8,9 +8,9 @@ let rewrite = {
       url = url.splice(2);
 
     if (url.startsWith('http')) {
-      return `${location.origin}/${url}`;
+      return `${location.origin}/service/${url}`;
     } else {
-      return `${location.origin}/${context.url.origin}${url.startsWith('/') ? '' : '/'}${url}`;
+      return `${location.origin}/service/${context.url.origin}${url.startsWith('/') ? '' : '/'}${url}`;
     }
   },
 };

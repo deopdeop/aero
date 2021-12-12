@@ -19,7 +19,7 @@ type Aero struct {
 }
 
 //go:embed script.js
-var scriptJS []byte
+var scriptJS string
 
 // NewAero creates and starts a new Aero instance.
 func NewAero(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
@@ -44,14 +44,14 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
 	req := &fasthttp.Request{}
 	req.SetRequestURI(uri)
 	ctx.Request.Header.VisitAll(func(k, v []byte) {
-		key, value := strings.ToLower(string(k)), string(v)
+		key, value := string(k), string(v)
 		switch key {
 		// TODO: Only delete the Service-Worker if the service worker isn't the interceptor
-		case "accept-encoding", "cache-control", "service-worker", "x-forwarded-for", "x-forwarded-host":
+		case "Accept-Encoding", "Cache-Control", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
 			// Do nothing, so these headers aren't added.
-		case "host":
+		case "Host":
 			req.Header.Set(key, string(req.URI().Host()))
-		case "referrer":
+		case "Referrer":
 			req.Header.Set(key, string(ctx.Request.Header.Peek("_referer")))
 		default:
 			req.Header.Set(key, value)
@@ -66,15 +66,15 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
 	}
 
 	cors := make(map[string]string)
-	response.Header.VisitAll(func(k, v []byte) {
-		key, value := strings.ToLower(string(k)), string(v)
-		switch key {
-		case "access-control-allow-origin", "alt-svc", "cache-control", "content-cncoding", "content-length", "content-security-policy", "cross-origin-resource-policy", "permissions-policy", "set-cookie", "set-cookie2", "service-worker-allowed", "strict-transport-security", "timing-allow-origin", "x-frame-options", "x-xss-protection":
-			cors[key] = value
-		case "location":
-			ctx.Response.Header.Set(key, a.protocol()+"://"+string(ctx.Request.Header.Peek("host"))+"/service/"+value)
+	response.Header.VisitAll(func(key, value []byte) {
+		parsedKey := string(key)
+		switch parsedKey {
+		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
+			cors[parsedKey] = string(value)
+		case "Location":
+			ctx.Response.Header.SetBytesK(key, "http://"+string(ctx.Request.Header.Peek("host"))+"/service/"+string(value))
 		default:
-			ctx.Response.Header.Set(key, value)
+			ctx.Response.Header.SetBytesKV(key, value)
 		}
 	})
 
@@ -110,9 +110,9 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	      let context = {
         	        body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
         	        cors: ` + string(corsJSON) + `,
-        	        url: new URL('` + string(uri) + `')
+        	        url: new URL('` + uri + `')
         	      };
-        	      ` + string(scriptJS) + `
+        	      ` + scriptJS + `
         	    </script>
         	  </body>
         	</html>
@@ -127,12 +127,4 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
 		`)
 	}
 	ctx.SetBody(resp)
-}
-
-// protocol returns the protocol that Aero is using.
-func (a *Aero) protocol() string {
-	if a.config.SSL.Enabled {
-		return "https"
-	}
-	return "http"
 }
