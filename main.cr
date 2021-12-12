@@ -27,9 +27,11 @@ server = HTTP::Server.new([
   folder = "static"
   case context.request.path
   when "/"
+    context.response.headers.add("Content-Type", "text/html")
     context.response << File.read("#{folder}/index.html")
     next
   when "/sw.js"
+    context.response.headers.add("Content-Type", "application/javascript")
     context.response << File.read("#{folder}/sw.js")
     next
   end
