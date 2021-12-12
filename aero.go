@@ -39,8 +39,10 @@ func NewAero(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero,
 
 // handleRequest handles a fasthttp request.
 func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
+	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), "/service/")
+
 	req := &fasthttp.Request{}
-	req.SetRequestURI(strings.TrimPrefix(string(ctx.URI().PathOriginal()), "/service/"))
+	req.SetRequestURI(uri)
 	ctx.Request.Header.VisitAll(func(k, v []byte) {
 		key, value := strings.ToLower(string(k)), string(v)
 		switch key {
@@ -108,7 +110,7 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	      let context = {
         	        body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
         	        cors: ` + string(corsJSON) + `,
-        	        url: new URL('` + string(req.RequestURI()) + `')
+        	        url: new URL('` + string(uri) + `')
         	      };
         	      ` + string(scriptJS) + `
         	    </script>
