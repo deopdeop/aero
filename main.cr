@@ -27,7 +27,9 @@ server = HTTP::Server.new([
   folder = "static/"
   case context.request.path.lchop('/'))
   when "/"
-    File.read("#{folder}/index.html}")
+    return File.read("#{folder}/index.html}")
+  when "/sw.js"
+    return File.read("#{folder}/sw.js}")
   end
 
   request_uri = URI.parse(URI.decode(context.request.path.lchop('/')))
