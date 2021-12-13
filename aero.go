@@ -115,7 +115,7 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	      	'use strict'
 
         	      	let ctx = {
-						// TODO: Instead of using b64 use escape regex
+				// TODO: Use escape regex instead
         	        	body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
         	        	cors: ` + string(corsJSON) + `,
         	        	url: new URL('` + uri + `')
