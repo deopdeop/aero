@@ -7,7 +7,7 @@ let rewrite = {
 		if (url.startsWith('./'))
 			url = url.splice(2);
 
-    	// regex may be faster
+    		// Regex might be faster?
 		if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('https://')) {
 			return `${location.origin}/service/${url}`;
 		} else {
