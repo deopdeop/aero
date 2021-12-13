@@ -4,11 +4,14 @@
   Cert = "cert.pem"
   # The SSL key to use for the proxy.
   Key = "key.pem"
-  # Determines whether the proxy will use SSL and HTTP/2.
+  # Determines if SSL is enabled
   Enabled = false
 
-[Server]
-  # The address and port to listen on.
-  Addr = ":80"
-  # The directory to use for serving static files.
-  Path = "static/"
+[SERVER]
+  Port = 3000
+
+[HTTP]
+  Prefix = "/http/"
+
+[WS]
+  Prefix = "/ws/"

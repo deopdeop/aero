@@ -1,77 +1,85 @@
 // Unsupported notice the proxy currently only supports chromium in a secure context; these restrictions will go away once the polyfills or fallbacks are implemented.
-if (!window.isSecureContext && 'serviceWorker' in navigator && 'cookieStore' in window) {
-  document.write('Your browser is unsupported try on a chromium based browser.');
-  throw new Error('Your browser is unsupported.');
+if (!(isSecureContext && 'serviceWorker' in navigator && 'cookieStore' in window)) {
+	document.write('Your browser is unsupported try on a chromium based browser.');
+	throw new Error('Your browser is unsupported.');
 }
-
-// Scoping
-
-// TODO: Conceal event listeners
 
 globalThis._window = {};
 
 Object.defineProperty(_window, 'location', {
-  get(target, prop) {
-    return context.url[prop];
-  }
+	get(target, prop) {
+		return ctx.url[prop];
+	}
 });
 
 Object.defineProperty(_window, 'origin', {
-  get() {
-    return context.url.origin;
-  }
+	get() {
+		return ctx.url.origin;
+	}
 });
 
-// Interceptors
-
-// TODO: onstorage
-
-window.addEventListener('beforeunload', event => {
-  // Cancel the redirect
-  event.preventDefault();
-
-  // TODO: Redirect href with rewritten url
-
-  // Needed for chrome
-  event.returnValue = '';
-}, {
-  capture: true
+_window.WebSocket = new Proxy(WebSocket, {
+	construct(target, args) {
+		args[0] = rewrite.url(args[0]);
+		return Reflect.construct(...args);
+	}
 });
 
-window.addEventListener('hashchange', event => {
-  // Update context.url hash property
-  context.url = location.hash;
-}, {
-  capture: true
+_window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
+	construct(target, args) {
+		if (args[1].urls.startsWith('turns:')) {
+			args[1].username += `|${args[1].urls}`;
+			args[1].urls = `turns:${location.host}`;
+			return Reflect.apply(...args);
+		} else if (args[1].urls.startsWith('stuns'))
+			console.warn("STUN connections aren't supported!");
+	}
 });
 
-// TODO: Rewrite websocket and webrtc messages
-window.addEventListener('message', event => console.log(event), {
-  capture: true
+// Make an proxy object named intercept for addEventListener that handles propogation and bubbles
+
+addEventListener('beforeunload', event => {
+	// Cancel the redirect
+	event.preventDefault();
+
+	// TODO: Redirect href with rewritten url
+
+	// Needed for chrome
+	event.returnValue = '';
 });
 
-// TODO: Conceal history with window.onpopstate
+addEventListener('hashchange', event => {
+	// Update the url hash
+	ctx.url = location.hash;
+});
 
-// TODO: If the beforeunload event interceptor idea doesn't work on forms try SubmitEvent
+addEventListener('open', event => console.log(event));
+
+
+addEventListener('storage', event => {
+	// I finished his but github decided to DELETE my code
+});
+
+addEventListener('submit', event => console.log(event));
 
 navigator.serviceWorker.register('/sw.js', {
-  // The Allow-Service-Worker header must be set to / for the scope to be allowed
-  scope: context.path,
-  // Don't cache http requests
-  updateViaCache: 'none'
-})
-    .then(registration => {
-      // Update service worker
-      registration.update();
+		// The Allow-Service-Worker header must be set to /
+		scope: '/',
+		// Don't cache http requests
+		updateViaCache: 'none'
+	})
+	.then(registration => {
+		// Update service worker
+		registration.update();
 
-      // Share server data with the service worker
-      const channel = new MessageChannel();
-      registration.active.postMessage(context.url.origin, [channel.port2]);
+		// Share server data with the service worker
+		const channel = new MessageChannel();
+		registration.active.postMessage(ctx.url.origin, [chan.port2]);
 
-      // Write the site's body after this script
-      var script = document.getElementsByTagName('script');
-      script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
-    });
+		// Write the site's body after this script
+		var script = document.getElementsByTagName('script');
+		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
+	});
 
 // Allow the service worker to send messages before the dom's content is loaded
 navigator.serviceWorker.startMessages();

@@ -8,7 +8,7 @@
         "proxy",
         "web-proxy",
         "unblocker",
-        "unblock",
+        "unblock"
     ],
     "repository": "https://github.com/titaniumnetwork-dev/aero",
     "image": "heroku/go",

@@ -11,6 +11,12 @@ import (
 	"strings"
 )
 
+//go:embed script.js
+var script string
+
+//go:embed middleware/*
+var mw embed.FS
+
 // Aero represents an instance of the Aero proxy.
 type Aero struct {
 	log    *logrus.Logger
@@ -18,16 +24,14 @@ type Aero struct {
 	config Config
 }
 
-//go:embed script.js
-var scriptJS string
-
-// NewAero creates and starts a new Aero instance.
-func NewAero(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
+// Creates and starts a new Aero instance.
+func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
-	r.GET("/service/{filepath:*}", a.handleRequest)
-	r.ServeFiles("/{filepath:*}", config.Server.Path)
+	r.GET(config.HTTP.Prefix + "{filepath:*}", a.handleRequest)
+	// TODO: Don't serve ts files
+	r.ServeFiles("/{filepath:*}", config.Server.Prefix)
 
 	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
@@ -39,22 +43,24 @@ func NewAero(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero,
 
 // handleRequest handles a fasthttp request.
 func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
-	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), "/service/")
+	// Can this be done with bytes?
+	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), config.HTTP.Prefix)
 
 	req := &fasthttp.Request{}
+
 	req.SetRequestURI(uri)
-	ctx.Request.Header.VisitAll(func(k, v []byte) {
-		key, value := string(k), string(v)
+
+	ctx.Request.Header.VisitAll(func(key, value []byte) {
 		switch key {
-		// TODO: Only delete the Service-Worker if the service worker isn't the interceptor
+		// Only delete the Service-Worker if the service worker isn't the interceptor
 		case "Accept-Encoding", "Cache-Control", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
 			// Do nothing, so these headers aren't added.
 		case "Host":
-			req.Header.Set(key, string(req.URI().Host()))
+			req.Header.SetBytesKV(key, req.URI().Host())
 		case "Referrer":
-			req.Header.Set(key, string(ctx.Request.Header.Peek("_referer")))
+			req.Header.SetBytesKV(key, ctx.Request.Header.Peek("_referer"))
 		default:
-			req.Header.Set(key, value)
+			req.Header.SetBytesKV(key, value)
 		}
 	})
 
@@ -72,7 +78,7 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			cors[parsedKey] = string(value)
 		case "Location":
-			ctx.Response.Header.SetBytesK(key, "http://"+string(ctx.Request.Header.Peek("host"))+"/service/"+string(value))
+			ctx.Response.Header.SetBytesKV(key, append(byte[](config.HTTP.Prefix), value))
 		default:
 			ctx.Response.Header.SetBytesKV(key, value)
 		}
@@ -82,7 +88,7 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 	ctx.Response.Header.Set("Cross-Origin-Embedder-Policy", "require-corp")
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
-	ctx.Response.Header.Set("Service-Worker-Allowed", "/")
+	ctx.Response.Header.Set("Service-Worker-Allowed", config.HTTP.Prefix)
 
 	ctx.Response.SetStatusCode(response.StatusCode())
 
@@ -106,25 +112,20 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	  </head>
         	  <body>
         	    <script>
-        	      'use strict'
-        	      let context = {
-        	        body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
-        	        cors: ` + string(corsJSON) + `,
-        	        url: new URL('` + uri + `')
-        	      };
-        	      ` + scriptJS + `
+        	      	'use strict'
+
+        	      	let ctx = {
+						// TODO: Instead of using b64 use escape regex
+        	        	body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
+        	        	cors: ` + string(corsJSON) + `,
+        	        	url: new URL('` + uri + `')
+        	      	};
+		
+        	      ` + script + `
         	    </script>
         	  </body>
         	</html>
 		`)
-	case "application/javascript", "application/x-javascript", "text/javascript":
-		resp = []byte(`
-        	{
-        	  _window = undefined;
-
-        	  ` + string(resp) + `
-        	}
-		`)
-	}
+	end
 	ctx.SetBody(resp)
 }
