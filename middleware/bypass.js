@@ -12,3 +12,5 @@ var image = document.createElementNS(svg.namespaceURI, 'image');
 image.setAttributeNS(null, 'href', src);
 
 svg.appendChild(image);
+
+// We will also need to add proxy objects to ensure the dom changes aren't being detected

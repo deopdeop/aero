@@ -1,4 +1,5 @@
 const httpPath = "/http"
+const search = "https://search.brave.com/search?q="
 
 const go = () => {
 	const redirectTo = url => window.location.href = httpPath + url;
@@ -10,7 +11,7 @@ const go = () => {
 		else if (url.includes('.') && !url.includes(' '))
 			redirectTo(url.substring(0, 4) === 'http' ? url : 'https://' + url);
 		else
-			redirectTo(`https://search.brave.com/search?q=${url.replace(/ /g, '+')}`);
+			redirectTo(search + url.replace(/ /g, '+'));
 	}
 
 	window.addEventListener("load", function() {
