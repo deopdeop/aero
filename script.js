@@ -36,22 +36,35 @@ _window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
 	}
 });
 
-// Make an proxy object named intercept for addEventListener that handles propogation and bubbles
+// Iterate through every element in the dom
+/*
+for (const element of document.getElementsByTagName("*")) {
+	// Only rewrite scripts with text
+	if (!(element instanceof HTMLScriptElement) && element.text != '') {
+		element.text = `
+		{
+			${element.text}
+		}
+		`;
+	}
+});
+*/
 
 addEventListener('beforeunload', event => {
 	// Cancel the redirect
 	event.preventDefault();
 
-	// TODO: Redirect href with rewritten url
+	// Redirect
+	event.redirect = document.activeElement.href;
 
 	// Needed for chrome
 	event.returnValue = '';
+}, {
+	capture: true
 });
 
-addEventListener('hashchange', event => {
-	// Update the url hash
-	context.url = location.hash;
-});
+// Update the url hash
+addEventListener('hashchange', event => context.url = location.hash);
 
 addEventListener('open', event => console.log(event));
 
