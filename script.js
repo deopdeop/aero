@@ -8,13 +8,13 @@ globalThis._window = {};
 
 Object.defineProperty(_window, 'location', {
 	get(target, prop) {
-		return ctx.url[prop];
+		return context.url[prop];
 	}
 });
 
 Object.defineProperty(_window, 'origin', {
 	get() {
-		return ctx.url.origin;
+		return context.url.origin;
 	}
 });
 
@@ -50,11 +50,10 @@ addEventListener('beforeunload', event => {
 
 addEventListener('hashchange', event => {
 	// Update the url hash
-	ctx.url = location.hash;
+	context.url = location.hash;
 });
 
 addEventListener('open', event => console.log(event));
-
 
 addEventListener('storage', event => {
 	// I finished his but github decided to DELETE my code
@@ -78,7 +77,7 @@ navigator.serviceWorker.register('/sw.js', {
 
 		// Write the site's body after this script
 		var script = document.getElementsByTagName('script');
-		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
+		script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
 	});
 
 // Allow the service worker to send messages before the dom's content is loaded

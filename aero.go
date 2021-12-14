@@ -15,7 +15,7 @@ import (
 var script string
 
 //go:embed middleware/*
-var mw embed.FS
+var middleware embed.FS
 
 // Aero represents an instance of the Aero proxy.
 type Aero struct {
@@ -114,8 +114,8 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	    <script>
         	      	'use strict'
 
-        	      	let ctx = {
-				// TODO: Use escape regex instead
+        	      	let context = {
+						// TODO: Use escape regex instead
         	        	body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
         	        	cors: ` + string(corsJSON) + `,
         	        	url: new URL('` + uri + `')

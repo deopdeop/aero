@@ -21,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = aero.NewAero(log, &fasthttp.Client{
+	_, err = aero.New(log, &fasthttp.Client{
 		ReadBufferSize:  8196,
 		WriteBufferSize: 8196,
 	}, config)
@@ -33,24 +33,24 @@ func main() {
 // readConfig creates an Aero config if it doesn't exist already and then reads it.
 func readConfig() (aero.Config, error) {
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
-		c := aero.DefaultConfig()
-		data, err := toml.Marshal(c)
+		conf := aero.DefaultConfig()
+		data, err := toml.Marshal(conf)
 		if err != nil {
 			return aero.Config{}, fmt.Errorf("failed marshalling default config: %v", err)
 		}
 		if err = ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			return aero.Config{}, fmt.Errorf("failed writing config: %v", err)
 		}
-		return c, nil
+		return conf, nil
 	}
 
-	var c aero.Config
+	var conf aero.Config
 	data, err := ioutil.ReadFile("config.toml")
 	if err != nil {
 		return aero.Config{}, fmt.Errorf("error reading config: %v", err)
 	}
-	if err = toml.Unmarshal(data, &c); err != nil {
+	if err = toml.Unmarshal(data, &conf); err != nil {
 		return aero.Config{}, fmt.Errorf("error unmarshalling config: %v", err)
 	}
-	return c, nil
+	return conf, nil
 }

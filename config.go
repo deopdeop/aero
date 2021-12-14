@@ -26,6 +26,6 @@ func DefaultConfig() Config {
 	conf.SSL.Cert = "cert.pem"
 	conf.SSL.Key = "key.pem"
 	conf.Server.Addr = ":80"
-	conf.Server.Path = "static/"
+	conf.HTTP.Prefix = "/http/"
 	return conf
 }
