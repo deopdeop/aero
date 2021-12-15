@@ -29,14 +29,16 @@ self.addEventListener('message', event =>
         }
     });
 
-// TODO: Remove all of the rewriters from the mutation observer since they won't be needed only href is needed
 self.addEventListener('fetch', event => {
     console.log`Fetched ${event.request.url.href} for ${event.request.mode}`;
 
     event.waitUntil(async () => {
         // Wait for context before sending request
+	    
+	// Parse Response CSP https://www.w3.org/TR/CSP3/#parse-response-csp
+	const policies = {};
 
-		// Fetch the resource
+	// Fetch the resource
         await fetch(rewrite.url(event.request.url.split(location.origin)[1])).then(response => {
 			// Construct the rewitten response
 			return new Response(response.body, {
