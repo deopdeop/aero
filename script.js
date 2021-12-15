@@ -36,20 +36,6 @@ _window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
 	}
 });
 
-// Iterate through every element in the dom
-/*
-for (const element of document.getElementsByTagName("*")) {
-	// Only rewrite scripts with text
-	if (!(element instanceof HTMLScriptElement) && element.text != '') {
-		element.text = `
-		{
-			${element.text}
-		}
-		`;
-	}
-});
-*/
-
 addEventListener('beforeunload', event => {
 	// Cancel the redirect
 	event.preventDefault();
@@ -85,12 +71,16 @@ navigator.serviceWorker.register('/sw.js', {
 		registration.update();
 
 		// Share server data with the service worker
-		const channel = new MessageChannel();
-		registration.active.postMessage(ctx.url.origin, [chan.port2]);
+		const chan = new MessageChannel();
+		registration.active.postMessage(ctx, [chan.port2]);
 
 		// Write the site's body after this script
 		var script = document.getElementsByTagName('script');
-		script[script.length - 1].insertAdjacentHTML("beforebegin", context.body);
+		// Set httpEquiv
+		const httpEquiv = null;
+		// Add httpEquiv after csp header; we do this so that the csp parser will prefer the header
+		ctx.csp = [...ctx.cors['Content-Security-Policy'], ...httpEquiv];
+		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
 	});
 
 // Allow the service worker to send messages before the dom's content is loaded
