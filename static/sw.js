@@ -23,7 +23,7 @@ self.addEventListener('fetch', event => {
             // https://www.w3.org/TR/CSP3/#parse-response-csp
             const directives = {};
             const tokens = ctxs[event.clientId].csp;
-            for (let i = 0; i < directiveTokens.length; i++) {
+            for (let i = 0; i < tokens.length; i++) {
                 const token = tokens[i].trim();
 
                 const parts = token.match(/\S+/g);
