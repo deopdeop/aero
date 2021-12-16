@@ -3,17 +3,20 @@
 * {
   font-family: Space Mono;
 }
+
 html, body {
     position:relative;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-}/*
-body > div {
+}
+
+/*body > div {
     height: 100%;
     overflow: scroll;
     -webkit-overflow-scrolling: touch;
 } */
+
 body {
   background: #202124;
 }
@@ -48,11 +51,13 @@ img {
   border-right: none;
   transition: color 1s;
 }
+
 @media screen and (max-width: 1000px) {
   #search {
     width:600px;
   }
 }
+
 .go {
   color: white;
   background: transparent;
@@ -110,15 +115,18 @@ a {
   text-decoration: none;
   color:dodgerblue;
 }
+
 img {
   /* transform: scale(0.7); */
   width:50vh;
 }
+
 .hover {
   color:dodgerblue;
   position: relative;
   text-decoration: none;
 }
+
 .hover::before {
   content: "";
   position: absolute;
@@ -131,6 +139,7 @@ img {
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
+
 .hover:hover::before {
   transform: scaleX(1);
 }
@@ -140,6 +149,7 @@ img {
   margin-right:50px;
   margin-top:2vh;
 }
+
 #settings-tab {
   display: none;
   position:absolute;
@@ -150,15 +160,19 @@ img {
   text-align:center;
   z-index:9999;
 }
+
 .section > * {
   display:inline-block;
 }
+
 .enabled {
   color:palegreen;
 }
+
 .disabled {
   color:red;
 }
+
 .advanced {
   text-align:center;
 }
