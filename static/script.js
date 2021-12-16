@@ -1,4 +1,4 @@
-const httpPath = "/http"
+const httpPath = "/http/"
 const search = "https://search.brave.com/search?q="
 
 const go = () => {
@@ -23,36 +23,3 @@ const go = () => {
 		});
 	});
 };
-
-/*Settings Stuff | Overcomplicated and Doesn't Work
-
-const $ = document.querySelector.bind(document)
-const tc = () => {
- localStorage.setItem("tc",localStorage.getItem("tc") ? "" : "true")
- handleToggle()
-}
-const handleToggle = () => {
-  const tc = localStorage.getItem("tc")
-    const tcclass = $(".istc").classList
-    tcclass.remove(tc ? "disabled" : "enabled")
-    tcclass.add(tc ? "enabled" : "disabled")
-    $(".istc").innerHTML = tc ? "enabled" : "disabled"
-    
-}
-let tabCloaking = localStorage.getItem("tc") || ""
-handleToggle()
-window.addEventListener("load", function() {
-$(".settings").addEventListener("click", ()=>{
-  $("#settings-tab").style.display = "block"
-})
-$("#tc").addEventListener("click",tc)
-$(".go").addEventListener("click",go)
-var search = document.getElementById("search")
-search.addEventListener("keyup", function(event) {
-    event.preventDefault()
-    if (event.keyCode == 13)
-        if (search.value !== "") {
-             go()
-        }
-    })
-});*/
