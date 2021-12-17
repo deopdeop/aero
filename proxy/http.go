@@ -1,3 +1,5 @@
+package aero/proxy
+
 import (
 	_ "embed"
 	"strings"
@@ -9,8 +11,7 @@ var script string
 //go:embed middleware/*
 var middleware embed.FS
 
-func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
-	// Can this be done with bytes?
+func (a *Aero) HTTP(ctx *fasthttp.RequestCtx) {
 	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), config.HTTP.Prefix)
 
 	req := &fasthttp.Request{}

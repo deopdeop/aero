@@ -1,4 +1,3 @@
-
 [SSL]
   # The SSL certificate to use for the proxy.
   Cert = "cert.pem"
@@ -8,8 +7,11 @@
   Enabled = false
 
 [HTTP]
+  Addr = 3000
   Prefix = "/http"
-  Port = 3000
+
+[ICE]
+  Prefix = "/ice"
 
 [WS]
   Prefix = "/ws"

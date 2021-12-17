@@ -11,21 +11,28 @@ type Config struct {
 		// Enabled indicates whether SSL is enabled.
 		Enabled bool
 	}
-	// Server contains the server configuration information.
-	Server struct {
+	HTTP struct {
 		// Addr is the address the proxy will listen on.
 		Addr string
-		// Path is the path that should be used to access the proxy.
-		Path string
+		Prefix string
+	}
+	ICE struct {
+		Prefix string
+	}
+	WS struct {
+		Prefix string
 	}
 }
 
 // DefaultConfig returns a configuration with the default values filled out.
 func DefaultConfig() Config {
-	conf := Config{}
-	conf.SSL.Cert = "cert.pem"
-	conf.SSL.Key = "key.pem"
-	conf.Server.Addr = ":80"
-	conf.HTTP.Prefix = "/http/"
+	config := Config{}
+	config.SSL.Cert = "cert.pem"
+	config.SSL.Key = "key.pem"
+	config.Server.Addr = ":3000"
+	config.HTTP.Prefix = "/http"
+	config.ICE.Prefix = "/ice"
+	config.WS.Prefix = "/ws"
+
 	return conf
 }
