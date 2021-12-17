@@ -31,8 +31,8 @@ func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
 		}
 	})
 
-	var response fasthttp.Response
-	err := a.client.Do(req, &response); err != nil {
+	var resp fasthttp.Response
+	err := a.client.Do(req, &resp); err != nil {
 		a.log.Errorln(err)
 		return
 	}
@@ -58,7 +58,7 @@ func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
 
 	ctx.Response.SetStatusCode(response.StatusCode())
 
-	resp := response.Body()
+	body := response.Body()
 	corsJSON, err := json.Marshal(cors); err != nil {
 		a.log.Errorln(err)
 		return
@@ -66,7 +66,7 @@ func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
 
 	switch strings.Split(string(response.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
-		resp = []byte(`
+		body = []byte(`
         	<!DOCTYPE html>
         	<html>
         	  <head>
@@ -81,7 +81,7 @@ func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
         	      	'use strict'
 
         	      	const ctx = {
-        	        	body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
+        	        	body: atob('` + body + `'),
         	        	cors: ` + string(corsJSON) + `,
         	        	url: new URL('` + uri + `')
         	      	};
@@ -92,5 +92,6 @@ func (a *Aero) Handler(ctx *fasthttp.RequestCtx) {
         	</html>
 		`)
 	end
-	ctx.SetBody(resp)
+
+	ctx.SetBody(body)
 }
