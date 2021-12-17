@@ -8,11 +8,8 @@
   Enabled = false
 
 [HTTP]
-  Prefix = "/http/"
+  Prefix = "/http"
   Port = 3000
 
 [WS]
-  Prefix = "/ws/"
-
-[ICE]
-  Prefix = "/ice/"
+  Prefix = "/ws"

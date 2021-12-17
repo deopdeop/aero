@@ -58,7 +58,7 @@ w.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
 		// ICE over WS
 		const ws = new WebSocket(ctx.ice.prefix)
 
-		ws.send(args[0].iceServers);
+		ws.send(JSON.stringify(args[0]));
 
 		// Send fake object
 	}
