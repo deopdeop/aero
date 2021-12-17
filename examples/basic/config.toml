@@ -7,11 +7,12 @@
   # Determines if SSL is enabled
   Enabled = false
 
-[SERVER]
-  Port = 3000
-
 [HTTP]
   Prefix = "/http/"
+  Port = 3000
 
 [WS]
   Prefix = "/ws/"
+
+[ICE]
+  Prefix = "/ice/"

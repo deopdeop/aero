@@ -18,6 +18,26 @@ self.addEventListener('fetch', event => {
 	event.waitUntil(async () => {
 		// Wait for context before sending request
 
+		// Rewrite request headers
+		// https://www.w3.org/TR/CSP3/#parse-response-csp
+		const csp = {};
+		const tokens = ctxs[event.clientId].csp;
+		for (let i = 0; i < tokens.length; i++) {
+			const token = tokens[i].trim();
+
+			const parts = token.match(/\S+/g);
+			if (Array.isArray(parts)) {
+				const name = parts[0].toLowerCase();
+
+				if (name in directives || !name.endsWith('-src')) continue;
+
+				const value = parts[1];
+				// Normalize and rewrite the value
+
+				csp[name] = value;
+			}
+		}
+
 		// Fetch the resource
 		await fetch(rewrite.url(event.request.url.split(location.origin)[1])).then(response => {
 			// Reconstruct the response

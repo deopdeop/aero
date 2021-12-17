@@ -29,20 +29,21 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
-	r.GET(config.HTTP.Prefix + "{filepath:*}", a.handleRequest)
+	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
+	r.GET(config.ICE.Prefix + "{filepath:*}", fastws.Upgrade(wsHandler))
 	// TODO: Don't serve ts files
-	r.ServeFiles("/{filepath:*}", config.Server.Prefix)
+	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
 	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
 		http2.ConfigureServer(srv)
-		return a, srv.ListenAndServeTLS(config.Server.Addr, config.SSL.Cert, config.SSL.Key)
+		return a, srv.ListenAndServeTLS(config.HTTP.Port, config.SSL.Cert, config.SSL.Key)
 	}
-	return a, srv.ListenAndServe(config.Server.Addr)
+	return a, srv.ListenAndServe(config.HTTP.Port)
 }
 
 // handleRequest handles a fasthttp request.
-func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
+func (a *Aero) httpt(ctx *fasthttp.RequestCtx) {
 	// Can this be done with bytes?
 	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), config.HTTP.Prefix)
 
@@ -116,7 +117,6 @@ func (a *Aero) handleRequest(ctx *fasthttp.RequestCtx) {
         	      	'use strict'
 
         	      	const ctx = {
-						// TODO: Use escape regex instead
         	        	body: atob('` + base64.StdEncoding.EncodeToString(resp) + `'),
         	        	cors: ` + string(corsJSON) + `,
         	        	url: new URL('` + uri + `')

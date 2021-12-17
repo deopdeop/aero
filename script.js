@@ -4,35 +4,63 @@ if (!(isSecureContext && 'serviceWorker' in navigator && 'cookieStore' in window
 	throw new Error('Your browser is unsupported.');
 }
 
-globalThis._window = {};
+ctx.csp = ctx.cors['Content-Security-Policy'];
 
-Object.defineProperty(_window, 'location', {
+new MutationObserver(mutations => {
+    for (const mutation of mutations){
+        for(const node of mutation.addedNodes){
+            if (node instanceof HTMLScriptElement) {
+                console.log(node.src, node.textContent);
+                
+				// Scope
+
+                node.remove();
+			} else if (node instanceof HTMLMetaElement) {
+				if (node.httpEquiv.toLowerCase() = 'content-security-policy') {
+					// https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
+					if (!(node.parentElement instanceof HTMLHeadElement) || node.content === '')
+						return;
+					
+					ctx.csp.push(node.content);
+				}
+			}
+        }
+    }
+}).observe(document, {
+    childList: true,
+    subtree: true
+});
+
+globalThis.w = {};
+
+Object.defineProperty(w, 'location', {
 	get(target, prop) {
-		return context.url[prop];
+		return ctx.url[prop];
 	}
 });
 
-Object.defineProperty(_window, 'origin', {
+Object.defineProperty(w, 'origin', {
 	get() {
-		return context.url.origin;
+		return ctx.url.origin;
 	}
 });
 
-_window.WebSocket = new Proxy(WebSocket, {
+w.WebSocket = new Proxy(WebSocket, {
 	construct(target, args) {
-		args[0] = rewrite.url(args[0]);
+		args[0] = ctx.ws.prefix + args[0];
+
 		return Reflect.construct(...args);
 	}
 });
 
-_window.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
+w.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
 	construct(target, args) {
-		if (args[1].urls.startsWith('turns:')) {
-			args[1].username += `|${args[1].urls}`;
-			args[1].urls = `turns:${location.host}`;
-			return Reflect.apply(...args);
-		} else if (args[1].urls.startsWith('stuns'))
-			console.warn("STUN connections aren't supported!");
+		// ICE over WS
+		const ws = new WebSocket(ctx.ice.prefix)
+
+		ws.send(args[0].iceServers);
+
+		// Send fake object
 	}
 });
 
@@ -41,7 +69,7 @@ addEventListener('beforeunload', event => {
 	event.preventDefault();
 
 	// Redirect
-	event.redirect = document.activeElement.href;
+	event.redirect = ctx.http.prefix + document.activeElement.href;
 
 	// Needed for chrome
 	event.returnValue = '';
@@ -52,7 +80,10 @@ addEventListener('beforeunload', event => {
 // Update the url hash
 addEventListener('hashchange', event => context.url = location.hash);
 
-addEventListener('open', event => console.log(event));
+// Clear history
+history.replaceState({}, '');
+// Don't set the history
+addEventListener('popstate', event => event.preventDefault());
 
 addEventListener('storage', event => {
 	// I finished his but github decided to DELETE my code
@@ -72,14 +103,8 @@ navigator.serviceWorker.register('/sw.js', {
 
 		// Share server data with the service worker
 		const chan = new MessageChannel();
-		registration.active.postMessage(ctx, [chan.port2]);
+		registration.active.postMessage({ cors: ctx.cors, origin: ctx.url.origin }, [chan.port2]);
 
-		// Write the site's body after this script
-		var script = document.getElementsByTagName('script');
-		// Set httpEquiv
-		const httpEquiv = null;
-		// Add httpEquiv after csp header; we do this so that the csp parser will prefer the header
-		ctx.csp = [...ctx.cors['Content-Security-Policy'], ...httpEquiv];
 		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
 	});
 
