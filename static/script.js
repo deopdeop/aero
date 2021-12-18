@@ -41,7 +41,7 @@ window.addEventListener("load", () => {
 
 	const search = document.getElementById("search")
 	
-	search.addEventListener("keyup", function(event) {
+	search.addEventListener("keyup", event => {
 		event.preventDefault()
 		event.keyCode === 13 && search.value !== "" && go();
 	})

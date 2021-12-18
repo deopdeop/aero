@@ -20,7 +20,7 @@ self.addEventListener('fetch', event => {
 
 		// Rewrite request headers
 		// https://www.w3.org/TR/CSP3/#parse-response-csp
-		const csp = {};
+		const policy = {};
 		const tokens = ctxs[event.clientId].csp;
 		for (let i = 0; i < tokens.length; i++) {
 			const token = tokens[i].trim();
@@ -34,7 +34,7 @@ self.addEventListener('fetch', event => {
 				const value = parts[1];
 				// Normalize and rewrite the value
 
-				csp[name] = value;
+				policy[name] = value;
 			}
 		}
 
@@ -52,8 +52,8 @@ self.addEventListener('fetch', event => {
 
 // Only works on chromium with a secure context
 self.addEventListener('cookiechange', event => {
-	console.log('Change in cookie', event);
-
+	for (const cookie of event.changed)
+		console.log('Cookie changed', cookie);
 	for (const cookie of event.deleted)
 		console.log('Deleted a cookie', cookie);
 });
