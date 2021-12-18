@@ -16,9 +16,6 @@ type Config struct {
 		Addr string
 		Prefix string
 	}
-	ICE struct {
-		Prefix string
-	}
 	WS struct {
 		Prefix string
 	}

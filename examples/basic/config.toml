@@ -10,8 +10,5 @@
   Addr = 3000
   Prefix = "/http"
 
-[ICE]
-  Prefix = "/ice"
-
 [WS]
   Prefix = "/ws"

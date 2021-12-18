@@ -33,8 +33,8 @@ func main() {
 // readConfig creates an Aero config if it doesn't exist already and then reads it.
 func readConfig() (aero.Config, error) {
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
-		conf := aero.DefaultConfig()
-		data, err := toml.Marshal(conf)
+		config := aero.DefaultConfig()
+		data, err := toml.Marshal(config)
 		if err != nil {
 			return aero.Config{}, fmt.Errorf("failed marshalling default config: %v", err)
 		}

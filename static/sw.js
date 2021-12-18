@@ -50,7 +50,10 @@ self.addEventListener('fetch', event => {
 	})();
 });
 
-// Only works on chromium with a secure context
+/*
+Only supports chromium with a secure context
+https://wicg.github.io/cookie-store/#typedefdef-cookielist]
+*/
 self.addEventListener('cookiechange', event => {
 	for (const cookie of event.changed)
 		console.log('Cookie changed', cookie);
