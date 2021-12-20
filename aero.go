@@ -1,7 +1,6 @@
 package aero
 
 import (
-	"embed"
 	_ "embed"
 	"encoding/json"
 	"github.com/dgrr/http2"
