@@ -1,18 +1,20 @@
 package aero
 
 import (
+	"embed"
 	_ "embed"
-	"strings"
+	"encoding/json"
 	"github.com/dgrr/http2"
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
+	"strings"
 )
 
 //go:embed script.js
 var script string
 
-//go:embed middleware/*
+/*go:embed middleware*/
 var middleware embed.FS
 
 // Aero represents an instance of the Aero proxy.
@@ -27,26 +29,27 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
-	r.GET(config.HTTP.Prefix + "{filepath:*}", http)
-	
+	r.GET(config.HTTP.Prefix+"{filepath:*}", http) // What is this supposed to be?
+
 	// TODO: Don't serve ts files
 	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
 	s := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
 		http2.ConfigureServer(s)
-		return a, s.ListenAndServeTLS(conf.HTTP.Port, config.SSL.Cert, config.SSL.Key)
+		return a, s.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
 	}
-	return a, s.ListenAndServe(conf.HTTP.Port)
+	return a, s.ListenAndServe(config.HTTP.Addr)
 }
 
-func (a *Aero) http(ctx *fasthttp.RequestCtx) {
+func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), config.HTTP.Prefix)
 
 	req := &fasthttp.Request{}
 
 	req.SetRequestURI(uri)
 
+	// TODO: Fix type mismatching
 	ctx.Request.Header.VisitAll(func(key, value []byte) {
 		switch key {
 		// Only delete the Service-Worker if the service worker isn't the interceptor
@@ -61,8 +64,9 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 		}
 	})
 
-	var resp fasthttp.Response
-	err := a.client.Do(req, &resp); err != nil {
+	var response fasthttp.Response
+	err := a.client.Do(req, &response)
+	if err != nil {
 		a.log.Errorln(err)
 		return
 	}
@@ -74,7 +78,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			cors[parsedKey] = string(value)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(key, append(byte[](config.HTTP.Prefix), value))
+			ctx.Response.Header.SetBytesKV(key, append([]byte(config.HTTP.Prefix), value...)) // This doesn't work at all
 		default:
 			ctx.Response.Header.SetBytesKV(key, value)
 		}
@@ -89,11 +93,13 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(response.StatusCode())
 
 	body := response.Body()
-	corsJSON, err := json.Marshal(cors); err != nil {
+	corsJSON, err := json.Marshal(cors)
+	if err != nil {
 		a.log.Errorln(err)
 		return
 	}
 
+	// TODO: Line 120
 	switch strings.Split(string(response.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
 		body = []byte(`
@@ -121,7 +127,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
         	  </body>
         	</html>
 		`)
-	end
-
+	}
 	ctx.SetBody(body)
+	return
 }

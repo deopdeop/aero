@@ -13,7 +13,7 @@ type Config struct {
 	}
 	HTTP struct {
 		// Addr is the address the proxy will listen on.
-		Addr string
+		Addr   string
 		Prefix string
 	}
 	WS struct {
@@ -26,10 +26,10 @@ func DefaultConfig() Config {
 	config := Config{}
 	config.SSL.Cert = "cert.pem"
 	config.SSL.Key = "key.pem"
-	config.Server.Addr = ":3000"
-	config.HTTP.Prefix = "/http"
-	config.ICE.Prefix = "/ice"
+	config.HTTP.Addr = ":3000"
+	config.HTTP.Prefix = "/path"
+	//config.ICE.Prefix = "/ice"
 	config.WS.Prefix = "/ws"
 
-	return conf
+	return config
 }

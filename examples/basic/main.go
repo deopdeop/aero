@@ -41,6 +41,7 @@ func readConfig() (aero.Config, error) {
 		if err = ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			return aero.Config{}, fmt.Errorf("failed writing config: %v", err)
 		}
+		conf := config
 		return conf, nil
 	}
 
