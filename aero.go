@@ -27,17 +27,17 @@ type Aero struct {
 func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
-	router := router.New()
-	router.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
+	r := router.New()
+	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
 	// TODO: Don't serve ts files
-	router.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
+	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
-	srv := &fasthttp.Server{Handler: router.Handler}
+	s := &fasthttp.Server{Handler: router.Handler}
 	if config.SSL.Enabled {
-		http2.ConfigureServer(srv)
-		return a, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
+		http2.ConfigureServer(s)
+		return s, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
 	}
-	return a, srv.ListenAndServe(config.HTTP.Addr)
+	return a, s.ListenAndServe(config.HTTP.Addr)
 }
 
 func (a *Aero) http(ctx *fasthttp.RequestCtx) {
@@ -47,18 +47,17 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 
 	req.SetRequestURI(uri)
 
-	// TODO: Fix type mismatching
-	ctx.Request.Header.VisitAll(func(key, value []byte) {
-		switch key {
+	ctx.Request.Header.VisitAll(func(k, v []byte) {
+		switch string(k) {
 		// Only delete the Service-Worker if the service worker isn't the interceptor
 		case "Accept-Encoding", "Cache-Control", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
 			// Do nothing, so these headers aren't added.
 		case "Host":
-			req.Header.SetBytesKV(key, req.URI().Host())
+			req.Header.SetBytesKV(k, req.URI().Host())
 		case "Referrer":
-			req.Header.SetBytesKV(key, ctx.Request.Header.Peek("_referer"))
+			req.Header.SetBytesKV(k, ctx.Request.Header.Peek("_referer"))
 		default:
-			req.Header.SetBytesKV(key, value)
+			req.Header.SetBytesKV(k, v)
 		}
 	})
 
@@ -70,15 +69,15 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	}
 
 	cors := make(map[string]string)
-	resp.Header.VisitAll(func(key, value []byte) {
-		stringKey := string(key)
-		switch stringKey {
+	resp.Header.VisitAll(func(k, v []byte) {
+		sk := string(k)
+		switch sk {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
-			cors[stringKey] = string(value)
+			cors[stringKey] = string(v)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(key, append([]byte(a.config.HTTP.Prefix), value))
+			ctx.Response.Header.SetBytesKV(k, append([]byte(a.config.HTTP.Prefix), v))
 		default:
-			ctx.Response.Header.SetBytesKV(key, value)
+			ctx.Response.Header.SetBytesKV(k, v)
 		}
 	})
 
