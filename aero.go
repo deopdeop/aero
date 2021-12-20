@@ -28,7 +28,7 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	a := &Aero{log: log, client: client, config: config}
 
 	router := router.New()
-	router.GET(config.HTTP.Prefix + "{filepath:*}", a.http) // What is this supposed to be?
+	router.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
 	// TODO: Don't serve ts files
 	router.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
