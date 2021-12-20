@@ -64,15 +64,15 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 		}
 	})
 
-	var response fasthttp.Response
-	err := a.client.Do(req, &response)
+	var resp fasthttp.Response
+	err := a.client.Do(req, &resp)
 	if err != nil {
 		a.log.Errorln(err)
 		return
 	}
 
 	cors := make(map[string]string)
-	response.Header.VisitAll(func(key, value []byte) {
+	resp.Header.VisitAll(func(key, value []byte) {
 		parsedKey := string(key)
 		switch parsedKey {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
@@ -90,17 +90,16 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
 	ctx.Response.Header.Set("Service-Worker-Allowed", config.HTTP.Prefix)
 
-	ctx.Response.SetStatusCode(response.StatusCode())
+	ctx.Response.SetStatusCode(resp.StatusCode())
 
-	body := response.Body()
+	body := resp.Body()
 	corsJSON, err := json.Marshal(cors)
 	if err != nil {
 		a.log.Errorln(err)
 		return
 	}
 
-	// TODO: Line 120
-	switch strings.Split(string(response.Header.Peek("Content-Type")), ";")[0] {
+	switch strings.Split(string(resp.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
 		body = []byte(`
         	<!DOCTYPE html>
