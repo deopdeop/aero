@@ -78,7 +78,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			cors[stringKey] = string(value)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(key, append([]byte(config.HTTP.Prefix), value...)) // This doesn't work at all
+			ctx.Response.Header.SetBytesKV(key, append([]byte(config.HTTP.Prefix), value))
 		default:
 			ctx.Response.Header.SetBytesKV(key, value)
 		}
