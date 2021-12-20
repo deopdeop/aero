@@ -30,7 +30,6 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 
 	r := router.New()
 	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http) // What is this supposed to be?
-
 	// TODO: Don't serve ts files
 	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
@@ -42,8 +41,8 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	return a, s.ListenAndServe(config.HTTP.Addr)
 }
 
-func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
-	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), config.HTTP.Prefix)
+func (a *Aero) http(ctx *fasthttp.RequestCtx) {
+	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), a.config.HTTP.Prefix)
 
 	req := &fasthttp.Request{}
 
@@ -78,7 +77,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			cors[stringKey] = string(value)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(key, append([]byte(config.HTTP.Prefix), value))
+			ctx.Response.Header.SetBytesKV(key, append([]byte(a.config.HTTP.Prefix), value))
 		default:
 			ctx.Response.Header.SetBytesKV(key, value)
 		}
@@ -88,12 +87,12 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 	ctx.Response.Header.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 	ctx.Response.Header.Set("Cross-Origin-Embedder-Policy", "require-corp")
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
-	ctx.Response.Header.Set("Service-Worker-Allowed", config.HTTP.Prefix)
+	ctx.Response.Header.Set("Service-Worker-Allowed", a.config.HTTP.Prefix)
 
 	ctx.Response.SetStatusCode(resp.StatusCode())
 
 	body := resp.Body()
-	corsJSON, err := json.Marshal(cors)
+	cors, err := json.Marshal(cors)
 	if err != nil {
 		a.log.Errorln(err)
 		return
@@ -117,7 +116,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 
         	      	const ctx = {
         	        	body: atob('` + body + `'),
-        	        	cors: ` + string(corsJSON) + `,
+        	        	cors: ` + string(cors) + `,
         	        	url: new URL('` + uri + `')
         	      	};
 		
@@ -128,5 +127,4 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 		`)
 	}
 	ctx.SetBody(body)
-	return
 }
