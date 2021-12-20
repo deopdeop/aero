@@ -73,10 +73,10 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
 
 	cors := make(map[string]string)
 	resp.Header.VisitAll(func(key, value []byte) {
-		parsedKey := string(key)
-		switch parsedKey {
+		stringKey := string(key)
+		switch stringKey {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
-			cors[parsedKey] = string(value)
+			cors[stringKey] = string(value)
 		case "Location":
 			ctx.Response.Header.SetBytesKV(key, append([]byte(config.HTTP.Prefix), value...)) // This doesn't work at all
 		default:
@@ -105,10 +105,10 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) (config Config) {
         	<!DOCTYPE html>
         	<html>
         	  <head>
-        	    <meta charset=utf-8>
+        		<meta charset=utf-8>
 
         	    <!-- Reset favicon -->
-        	    <link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
+				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
         	  </head>
         	  <body>
 			  	<script src=./rewrite.js>
