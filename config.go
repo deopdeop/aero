@@ -28,7 +28,6 @@ func DefaultConfig() Config {
 	config.SSL.Key = "key.pem"
 	config.HTTP.Addr = ":3000"
 	config.HTTP.Prefix = "/path"
-	//config.ICE.Prefix = "/ice"
 	config.WS.Prefix = "/ws"
 
 	return config

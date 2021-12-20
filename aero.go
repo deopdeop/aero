@@ -14,7 +14,7 @@ import (
 var script string
 
 /*go:embed middleware*/
-var middleware embed.FS
+var mw embed.FS
 
 // Aero represents an instance of the Aero proxy.
 type Aero struct {
@@ -24,20 +24,20 @@ type Aero struct {
 }
 
 // Creates and starts a new Aero instance.
-func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
+func New(log *logrus.Logger, client *fasthttp.Client, conf Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
-	r := router.New()
-	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http) // What is this supposed to be?
+	router := router.New()
+	router.GET(config.HTTP.Prefix + "{filepath:*}", a.http) // What is this supposed to be?
 	// TODO: Don't serve ts files
-	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
+	router.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
-	s := &fasthttp.Server{Handler: r.Handler}
+	srv := &fasthttp.Server{Handler: router.Handler}
 	if config.SSL.Enabled {
-		http2.ConfigureServer(s)
-		return a, s.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
+		http2.ConfigureServer(srv)
+		return a, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
 	}
-	return a, s.ListenAndServe(config.HTTP.Addr)
+	return a, srv.ListenAndServe(config.HTTP.Addr)
 }
 
 func (a *Aero) http(ctx *fasthttp.RequestCtx) {
