@@ -100,29 +100,29 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	switch strings.Split(string(resp.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
 		body = []byte(`
-        	<!DOCTYPE html>
-        	<html>
-        	  <head>
-        		<meta charset=utf-8>
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<meta charset=utf-8>
 
-        	    <!-- Reset favicon -->
+				<!-- Reset favicon -->
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
-        	  </head>
-        	  <body>
-			  	<script src=./rewrite.js>
-        	    <script>
-        	      	'use strict'
+			</head>
+			<body>
+				<script src=./rewrite.js>
+				<script>
+				'use strict'
 
-        	      	const ctx = {
-        	        	body: atob('` + body + `'),
-        	        	cors: ` + string(cors) + `,
-        	        	url: new URL('` + uri + `')
-        	      	};
-		
-        	      ` + script + `
-        	    </script>
-        	  </body>
-        	</html>
+				const ctx = {
+					body: atob('` + body + `'),
+					cors: ` + string(cors) + `,
+					url: new URL('` + uri + `')
+				};
+
+				` + script + `
+				</script>
+			</body>
+		</html>
 		`)
 	}
 	ctx.SetBody(body)
