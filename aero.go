@@ -32,7 +32,7 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	// TODO: Don't serve ts files
 	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
-	s := &fasthttp.Server{Handler: router.Handler}
+	s := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
 		http2.ConfigureServer(s)
 		return s, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
