@@ -10,6 +10,8 @@ import (
 	"os"
 )
 
+var conf aero.Config
+
 // This example demonstrates usage of a trivial Aero instance.
 func main() {
 	log := logrus.New()
@@ -41,11 +43,8 @@ func readConfig() (aero.Config, error) {
 		if err = ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			return aero.Config{}, fmt.Errorf("failed writing config: %v", err)
 		}
-		conf := config
 		return conf, nil
 	}
-
-	var conf aero.Config
 	data, err := ioutil.ReadFile("config.toml")
 	if err != nil {
 		return aero.Config{}, fmt.Errorf("error reading config: %v", err)
