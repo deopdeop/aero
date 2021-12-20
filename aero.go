@@ -24,7 +24,7 @@ type Aero struct {
 }
 
 // Creates and starts a new Aero instance.
-func New(log *logrus.Logger, client *fasthttp.Client, conf Config) (*Aero, error) {
+func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
 	router := router.New()
