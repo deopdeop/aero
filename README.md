@@ -8,8 +8,3 @@ A new interception proxy concept written in Go and JavaScript.
 
 ## Basic Example
 You can find a basic example of Aero [here](https://github.com/titaniumnetwork-dev/aero/tree/master/examples/basic)
-
-## Sites that are incompatible
-* [Discord](https://discord.com/)
-* [Google Santa Tracker](https://santatracker.google.com/)
-* [Luphoria's Blog](https://luphoria.com/)

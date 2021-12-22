@@ -10,8 +10,6 @@ import (
 	"os"
 )
 
-var conf aero.Config
-
 // This example demonstrates usage of a trivial Aero instance.
 func main() {
 	log := logrus.New()

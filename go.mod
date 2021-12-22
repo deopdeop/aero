@@ -1,6 +1,6 @@
-module gitlab.com/titaniumnetwork/aero
+module github.com/titaniumnetwork/aero
 
-go 1.17
+go 1.14
 
 require (
 	github.com/dgrr/http2 v0.2.13
