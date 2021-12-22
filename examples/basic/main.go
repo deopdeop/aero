@@ -5,7 +5,7 @@ import (
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-	"gitlab.com/titaniumnetwork/aero"
+	"github.com/titaniumnetwork/aero"
 	"io/ioutil"
 	"os"
 )
