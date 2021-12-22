@@ -32,12 +32,12 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	// TODO: Don't serve ts files
 	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
-	s := &fasthttp.Server{Handler: r.Handler}
+	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
-		http2.ConfigureServer(s)
-		return s, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
+		http2.ConfigureServer(srv)
+		return srv, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
 	}
-	return a, s.ListenAndServe(config.HTTP.Addr)
+	return a, srv.ListenAndServe(config.HTTP.Addr)
 }
 
 func (a *Aero) http(ctx *fasthttp.RequestCtx) {
@@ -68,14 +68,14 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	cors := make(map[string]string)
+	delHeaders := make(map[string]string)
 	resp.Header.VisitAll(func(k, v []byte) {
-		sk := string(k)
-		switch sk {
+		sK := string(k)
+		switch sK {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
-			cors[stringKey] = string(v)
+			delHeaders[sK] = string(v)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(k, append([]byte(a.config.HTTP.Prefix), v))
+			ctx.Response.Header.SetBytesKV(k, append(byte(a.config.HTTP.Prefix), v))
 		default:
 			ctx.Response.Header.SetBytesKV(k, v)
 		}
@@ -90,7 +90,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(resp.StatusCode())
 
 	body := resp.Body()
-	cors, err := json.Marshal(cors)
+	cors, err := json.Marshal(delHeaders)
 	if err != nil {
 		a.log.Errorln(err)
 		return
