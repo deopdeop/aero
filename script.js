@@ -7,28 +7,28 @@ if (!(isSecureContext && 'serviceWorker' in navigator && 'cookieStore' in window
 ctx.csp = ctx.cors['Content-Security-Policy'];
 
 new MutationObserver(mutations => {
-    for (const mutation of mutations){
-        for(const node of mutation.addedNodes){
-            if (node instanceof HTMLScriptElement) {
-                console.log(node.src, node.textContent);
-                
+	for (const mutation of mutations) {
+		for (const node of mutation.addedNodes) {
+			if (node instanceof HTMLScriptElement) {
+				console.log(node.src, node.textContent);
+
 				// Scope
 
-                node.remove();
+				node.remove();
 			} else if (node instanceof HTMLMetaElement) {
 				if (node.httpEquiv.toLowerCase() = 'content-security-policy') {
 					// https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
 					if (!(node.parentElement instanceof HTMLHeadElement) || node.content === '')
 						return;
-					
+
 					ctx.csp.push(node.content);
 				}
 			}
-        }
-    }
+		}
+	}
 }).observe(document, {
-    childList: true,
-    subtree: true
+	childList: true,
+	subtree: true
 });
 
 globalThis.w = {};
@@ -103,7 +103,10 @@ navigator.serviceWorker.register('/sw.js', {
 
 		// Share server data with the service worker
 		const chan = new MessageChannel();
-		registration.active.postMessage({ cors: ctx.cors, origin: ctx.url.origin }, [chan.port2]);
+		registration.active.postMessage({
+			cors: ctx.cors,
+			origin: ctx.url.origin
+		}, [chan.port2]);
 
 		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
 	});
