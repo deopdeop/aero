@@ -33,7 +33,6 @@ body {
 .title {
     color: white;
     text-align: center;
-    font-size: 65px;
     margin-top: 15%;
 }
 
@@ -121,7 +120,7 @@ a {
 
 img {
     /* transform: scale(0.7); */
-    width: 50vh;
+    width: 40vh;
 }
 
 .hover {
