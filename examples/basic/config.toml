@@ -12,7 +12,7 @@
   # The prefix to use to access the HTTP proxy.
   Prefix = "/http/"
   # The path to the static files.
-  Static = "examples/basic/static"
+  Static = "static"
 
 [WS]
   # The prefix to use to access the WebSocket proxy.
