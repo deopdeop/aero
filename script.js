@@ -16,7 +16,7 @@ new MutationObserver(mutations => {
 
 				node.remove();
 			} else if (node instanceof HTMLMetaElement) {
-				if (node.httpEquiv.toLowerCase() = 'content-security-policy') {
+				if (node.httpEquiv.toLowerCase() == 'content-security-policy') {
 					// https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
 					if (!(node.parentElement instanceof HTMLHeadElement) || node.content === '')
 						return;

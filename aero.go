@@ -1,8 +1,9 @@
 package aero
 
 import (
-	"embed"
+	_ "embed"
 	"encoding/json"
+	"fmt"
 	"github.com/dgrr/http2"
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
@@ -13,9 +14,6 @@ import (
 //go:embed script.js
 var script string
 
-//go:embed middleware
-var mw embed.FS
-
 // Aero represents an instance of the Aero proxy.
 type Aero struct {
 	log    *logrus.Logger
@@ -23,14 +21,14 @@ type Aero struct {
 	config Config
 }
 
-// New Creates and starts a new Aero instance.
+// New creates and starts a new Aero instance.
 func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
 	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
-	// TODO: Don't serve ts files
-	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
+	r.ServeFiles("/{filepath:*}", config.HTTP.Static) // TODO: Don't serve TS files.
+	// TODO: WebSocket support.
 
 	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
@@ -40,22 +38,23 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	return a, srv.ListenAndServe(config.HTTP.Addr)
 }
 
+// http handles the HTTP proxy requests.
 func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), a.config.HTTP.Prefix)
 
+	fmt.Println(uri)
 	req := &fasthttp.Request{}
-
 	req.SetRequestURI(uri)
 
 	ctx.Request.Header.VisitAll(func(k, v []byte) {
 		switch string(k) {
-		// Only delete the Service-Worker if the service worker isn't the interceptor
+		// Only delete the Service-Worker if the service worker isn't the interceptor.
 		case "Accept-Encoding", "Cache-Control", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
 			// Do nothing, so these headers aren't added.
 		case "Host":
 			req.Header.SetBytesKV(k, req.URI().Host())
 		case "Referrer":
-			req.Header.SetBytesKV(k, ctx.Request.Header.Peek("_referer"))
+			req.Header.SetBytesKV(k, ctx.Request.Header.Peek("_referrer"))
 		default:
 			req.Header.SetBytesKV(k, v)
 		}
@@ -75,9 +74,9 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			delHeaders[sK] = string(v)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(k, append([]byte(a.config.HTTP.Prefix), v...))
+			ctx.Response.Header.Set(sK, a.config.HTTP.Prefix+string(v))
 		default:
-			ctx.Response.Header.SetBytesKV(k, v)
+			ctx.Response.Header.SetBytesV(sK, v)
 		}
 	})
 
@@ -113,7 +112,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				'use strict'
 
 				const ctx = {
-					body: atob('` + body + `'),
+					body: atob('` + string(body) + `'),
 					cors: ` + string(cors) + `,
 					url: new URL('` + uri + `')
 				};

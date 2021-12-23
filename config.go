@@ -13,10 +13,14 @@ type Config struct {
 	}
 	HTTP struct {
 		// Addr is the address the proxy will listen on.
-		Addr   string
+		Addr string
+		// Prefix is the prefix used to access the HTTP proxy.
 		Prefix string
+		// Static is the path to the static files.
+		Static string
 	}
 	WS struct {
+		// Prefix is the prefix used to access the WebSocket proxy.
 		Prefix string
 	}
 }
@@ -27,8 +31,8 @@ func DefaultConfig() Config {
 	config.SSL.Cert = "cert.pem"
 	config.SSL.Key = "key.pem"
 	config.HTTP.Addr = ":3000"
-	config.HTTP.Prefix = "/path"
-	config.WS.Prefix = "/ws"
-
+	config.HTTP.Prefix = "/http/"
+	config.HTTP.Static = "static"
+	config.WS.Prefix = "/ws/"
 	return config
 }

@@ -7,8 +7,13 @@
   Enabled = false
 
 [HTTP]
-  Addr = 3000
-  Prefix = "/http"
+  # The HTTP address to listen on.
+  Addr = ":3000"
+  # The prefix to use to access the HTTP proxy.
+  Prefix = "/http/"
+  # The path to the static files.
+  Static = "static"
 
 [WS]
-  Prefix = "/ws"
+  # The prefix to use to access the WebSocket proxy.
+  Prefix = "/ws/"

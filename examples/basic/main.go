@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
-	"github.com/titaniumnetwork/aero"
+	"github.com/titaniumnetwork-dev/aero"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"os"
