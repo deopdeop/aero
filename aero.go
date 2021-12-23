@@ -13,7 +13,7 @@ import (
 //go:embed script.js
 var script string
 
-/*go:embed middleware*/
+//go:embed middleware
 var mw embed.FS
 
 // Aero represents an instance of the Aero proxy.
@@ -23,7 +23,7 @@ type Aero struct {
 	config Config
 }
 
-// Creates and starts a new Aero instance.
+// New Creates and starts a new Aero instance.
 func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
