@@ -32,7 +32,7 @@ func DefaultConfig() Config {
 	config.SSL.Key = "key.pem"
 	config.HTTP.Addr = ":3000"
 	config.HTTP.Prefix = "/http/"
-	config.HTTP.Static = "static"
+	config.HTTP.Static = "examples/basic/static"
 	config.WS.Prefix = "/ws/"
 	return config
 }
