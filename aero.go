@@ -3,7 +3,7 @@ package aero
 import (
 	_ "embed"
 	"encoding/json"
-	"fmt"
+	"encoding/base64"
 	"github.com/dgrr/http2"
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
@@ -27,7 +27,8 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 
 	r := router.New()
 	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
-	r.ServeFiles("/{filepath:*}", config.HTTP.Static) // TODO: Don't serve TS files.
+	// TODO: Don't serve TS files.
+	r.ServeFiles("/{filepath:*}", config.HTTP.Static)
 	// TODO: WebSocket support.
 
 	srv := &fasthttp.Server{Handler: r.Handler}
@@ -42,7 +43,6 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	uri := strings.TrimPrefix(string(ctx.URI().PathOriginal()), a.config.HTTP.Prefix)
 
-	fmt.Println(uri)
 	req := &fasthttp.Request{}
 	req.SetRequestURI(uri)
 
@@ -69,14 +69,14 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 
 	delHeaders := make(map[string]string)
 	resp.Header.VisitAll(func(k, v []byte) {
-		sK := string(k)
-		switch sK {
+		sk := string(k)
+		switch sk {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
-			delHeaders[sK] = string(v)
+			delHeaders[sk] = string(v)
 		case "Location":
-			ctx.Response.Header.Set(sK, a.config.HTTP.Prefix+string(v))
+			ctx.Response.Header.SetBytesKV(k, append([]byte(a.config.HTTP.Prefix), v...))
 		default:
-			ctx.Response.Header.SetBytesV(sK, v)
+			ctx.Response.Header.SetBytesKV(k, v)
 		}
 	})
 
@@ -112,7 +112,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				'use strict'
 
 				const ctx = {
-					body: atob('` + string(body) + `'),
+					body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
 					cors: ` + string(cors) + `,
 					url: new URL('` + uri + `')
 				};

@@ -45,6 +45,7 @@ Object.defineProperty(w, 'origin', {
 	}
 });
 
+/*
 w.WebSocket = new Proxy(WebSocket, {
 	construct(target, args) {
 		args[0] = ctx.ws.prefix + args[0];
@@ -53,16 +54,19 @@ w.WebSocket = new Proxy(WebSocket, {
 	}
 });
 
-w.RTCPeerConnection.prototype = new Proxy(RTCPeerConnection.prototype, {
-	construct(target, args) {
-		// ICE over WS
-		const ws = new WebSocket(ctx.ice.prefix)
+w.RTCPeerConnection = {
+	prototype: new Proxy(RTCPeerConnection.prototype, {
+		construct(target, args) {
+			// ICE over WS
+			const ws = new WebSocket(ctx.ice.prefix)
 
-		ws.send(JSON.stringify(args[0]));
+			ws.send(JSON.stringify(args[0]));
 
-		// Send fake object
-	}
-});
+			// Send fake object
+		}
+	})
+};
+*/
 
 addEventListener('beforeunload', event => {
 	// Cancel the redirect
