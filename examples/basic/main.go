@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
-	"github.com/valyala/fasthttp"
 	"github.com/titaniumnetwork/aero"
+	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"os"
 )
@@ -41,14 +41,15 @@ func readConfig() (aero.Config, error) {
 		if err = ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			return aero.Config{}, fmt.Errorf("failed writing config: %v", err)
 		}
-		return conf, nil
+		return config, nil
 	}
+	var config aero.Config
 	data, err := ioutil.ReadFile("config.toml")
 	if err != nil {
 		return aero.Config{}, fmt.Errorf("error reading config: %v", err)
 	}
-	if err = toml.Unmarshal(data, &conf); err != nil {
+	if err = toml.Unmarshal(data, &config); err != nil {
 		return aero.Config{}, fmt.Errorf("error unmarshalling config: %v", err)
 	}
-	return conf, nil
+	return config, nil
 }
