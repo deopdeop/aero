@@ -1,7 +1,7 @@
 package aero
 
 import (
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"github.com/dgrr/http2"
 	"github.com/fasthttp/router"
@@ -28,14 +28,14 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
-	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
+	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
 	// TODO: Don't serve ts files
 	r.ServeFiles("/{filepath:*}", config.HTTP.Prefix)
 
 	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
 		http2.ConfigureServer(srv)
-		return srv, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
+		return a, srv.ListenAndServeTLS(config.HTTP.Addr, config.SSL.Cert, config.SSL.Key)
 	}
 	return a, srv.ListenAndServe(config.HTTP.Addr)
 }
@@ -75,7 +75,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 		case "Access-Control-Allow-Origin", "Alt-Svc", "Cache-Control", "Content-Encoding", "Content-Length", "Content-Security-Policy", "Cross-Origin-Resource-Policy", "Permissions-Policy", "Set-Cookie", "Set-Cookie2", "Service-Worker-Allowed", "Strict-Transport-Security", "Timing-Allow-Origin", "X-Frame-Options", "X-Xss-Protection":
 			delHeaders[sK] = string(v)
 		case "Location":
-			ctx.Response.Header.SetBytesKV(k, append(byte(a.config.HTTP.Prefix), v))
+			ctx.Response.Header.SetBytesKV(k, append([]byte(a.config.HTTP.Prefix), v...))
 		default:
 			ctx.Response.Header.SetBytesKV(k, v)
 		}
