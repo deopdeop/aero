@@ -1,1 +1,2 @@
 language="nix"
+run = "cd examples/basic && go run main.go"
