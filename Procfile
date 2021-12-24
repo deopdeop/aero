@@ -1,1 +1,1 @@
-web: go run examples/basic/main.go
+web: cd examples/basic && go run main.go
