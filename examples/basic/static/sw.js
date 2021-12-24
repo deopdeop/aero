@@ -13,7 +13,8 @@ const ctxs = {};
 self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
 self.addEventListener('fetch', event => {
-	console.log`Fetched ${event.request.url.href} for ${event.request.mode}`;
+	//console.log`Fetched ${event.request.url.href} for ${event.request.mode}`;
+	console.log(event.request.mode);
 
 	event.waitUntil(async () => {
 		// Wait for context before sending request
@@ -29,7 +30,8 @@ self.addEventListener('fetch', event => {
 			if (Array.isArray(parts)) {
 				const name = parts[0].toLowerCase();
 
-				if (name in directives || !name.endsWith('-src')) continue;
+				if (name in directives || !name.endsWith('-src'))
+					continue;
 
 				const value = parts[1];
 				// Normalize and rewrite the value
@@ -39,15 +41,24 @@ self.addEventListener('fetch', event => {
 		}
 
 		// Fetch the resource
-		await fetch(rewrite.url(event.request.url.split(location.origin)[1])).then(response => {
-			// Reconstruct the response
-			return new Response(response.body, {
-				status: response.status,
-				statusText: response.statusText,
-				headers: response.headers
-			});
+		{ body, status, statusText, headers } = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
+
+		if (headers['content-type'] === 'application/javascript') {
+			body = `
+				{
+					${body}
+
+				}
+			`.replace('var', /\b(?<!\[[^\]]*(?=\blet\b[^\]]*\])|{[^}]*(?=\blet\b[^}]*}))let\b/);
+		}
+
+		// Return the resource
+		return new Response(body, {
+				status: status,
+				statusText: statusText,
+				headers: headers
 		});
-	})();
+	});
 });
 
 /*
