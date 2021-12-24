@@ -1,6 +1,6 @@
 'use strict'
 
-importScripts('./rewrite.js')
+importScripts('./rewrite.js');
 
 // Don't wait for the old service workers
 self.addEventListener('install', event => self.skipWaiting());
@@ -19,8 +19,10 @@ self.addEventListener('fetch', event => {
 	event.waitUntil(async () => {
 		// Wait for context before sending request
 
-		// Rewrite request headers
-		// https://www.w3.org/TR/CSP3/#parse-response-csp
+		/*
+		Rewrite request headers
+		https://www.w3.org/TR/CSP3/#parse-response-csp
+		*/
 		const policy = {};
 		const tokens = ctxs[event.clientId].csp;
 		for (let i = 0; i < tokens.length; i++) {
@@ -43,20 +45,16 @@ self.addEventListener('fetch', event => {
 		// Fetch the resource
 		{ body, status, statusText, headers } = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
 
-		if (headers['content-type'] === 'application/javascript') {
-			body = `
-				{
-					${body}
-
-				}
-			`.replace('var', /\b(?<!\[[^\]]*(?=\blet\b[^\]]*\])|{[^}]*(?=\blet\b[^}]*}))let\b/);
+		if (['application/javascript', 'application/x-javascript'].includes(headers['content-type'])) {
+			// Scoping
+			body = rewrite.js(body);
 		}
 
 		// Return the resource
 		return new Response(body, {
-				status: status,
-				statusText: statusText,
-				headers: headers
+			status: status,
+			statusText: statusText,
+			headers: headers
 		});
 	});
 });
