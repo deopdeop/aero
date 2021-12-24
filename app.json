@@ -11,7 +11,7 @@
         "unblock"
     ],
     "repository": "https://github.com/titaniumnetwork-dev/aero",
-    "image": "heroku/go",
+    "image": "heroku/go:1.17",
     "buildpacks": [
         {
             "url": "https://github.com/heroku/heroku-buildpack-go"
