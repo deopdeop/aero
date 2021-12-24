@@ -1,3 +1,0 @@
-[metadata.heroku]
-  root-package = "github.com/titaniumnetwork-dev/aero"
-  go-version = "go1.7"
