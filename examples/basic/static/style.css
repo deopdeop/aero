@@ -12,14 +12,6 @@ body {
     overflow: hidden;
 }
 
-/*
-body > div {
-    height: 100%;
-    overflow: scroll;
-    -webkit-overflow-scrolling: touch;
-}
-*/
-
 body {
     background: #202124;
 }
@@ -147,9 +139,14 @@ img {
 }
 
 .settings {
+    display: none;
     float: right;
     margin-right: 50px;
     margin-top: 2vh;
+}
+
+.settings:hover {
+    text-decoration: underline;
 }
 
 #settings-tab {

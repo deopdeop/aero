@@ -17,14 +17,14 @@
 				<img src=./images/aero.png unselectable=on>
 			</h1>
 			<div class=omnibox>
-				<input onkeyup=colors() autofocus id=search autocomplete=off placeholder="Search or type a URL">
-				<button class=go>
+				<input id=search onkeyup=color() autofocus autocomplete=off placeholder="Search or type a URL">
+				<button class="go" onclick="go()">
 					<i class="fa fa-search"></i>
 				</button>
+				<datalist id="suggestions"></datalist>
 			</div>
 			<div id=suggestions></div>
-			<div style=display:block;height:3vh;></div>
-			<!-- <a class=hover href = /about>What is Aero?</a>-->
+			<div style=display:block;height:3vh></div>
 			<div class=icons-pos>
 				<div class=icons>
 					<a class=icon href=https://github.com/titaniumnetwork-dev/aero target=_blank>
