@@ -27,9 +27,8 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 
 	r := router.New()
 	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
-	// TODO: Don't serve TS files.
 	r.ServeFiles("/{filepath:*}", config.HTTP.Static)
-	// TODO: WebSocket support.
+	// Websocket support.
 
 	srv := &fasthttp.Server{Handler: r.Handler}
 	if config.SSL.Enabled {
