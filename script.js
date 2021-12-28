@@ -1,8 +1,9 @@
+// Only supports chromium with the flag enable-experimental-cookie-features and a secure context
+const cookieSupport = 'cookieStore' in window;
+
 // Unsupported notice the proxy currently only supports chromium in a secure context; these restrictions will go away once the polyfills or fallbacks are implemented.
-if (!(isSecureContext && 'serviceWorker' in navigator && 'cookieStore' in window)) {
-	document.write('Your browser is unsupported try on a chromium based browser.');
-	throw new Error('Your browser is unsupported.');
-}
+if (!(isSecureContext && 'serviceWorker' in navigator))
+	throw new Error('Your browser is unsupported');
 
 ctx.csp = ctx.cors['Content-Security-Policy'];
 
@@ -32,6 +33,25 @@ new MutationObserver(mutations => {
 });
 
 globalThis.w = {};
+
+if (!cookieSupport) {
+	w.document = {
+		cookie: {
+			set: (target, prop) => {
+				const directives = target[prop].split('; ');
+
+				for (directive in directives) {
+					const pair = directive.split('=');
+					switch (pair) {
+						case 'path':
+					}
+				}
+
+				return directives.join('; ');
+			}
+		}
+	}
+}
 
 Object.defineProperty(w, 'location', {
 	get(target, prop) {
@@ -73,7 +93,7 @@ addEventListener('beforeunload', event => {
 	event.preventDefault();
 
 	// Redirect
-	event.redirect = ctx.http.prefix + document.activeElement.href;
+	//event.redirect = ctx.http.prefix + document.activeElement.href;
 
 	// Needed for chrome
 	event.returnValue = '';
@@ -108,11 +128,14 @@ navigator.serviceWorker.register('/sw.js', {
 		// Share server data with the service worker
 		const chan = new MessageChannel();
 		registration.active.postMessage({
+			cookieSupport: cookieSupport,
 			cors: ctx.cors,
 			origin: ctx.url.origin
 		}, [chan.port2]);
 
-		script[script.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
+		// Insert the site's html after this scripts
+		const scripts = document.getElementsByTagName('script');
+		scripts[scripts.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
 	});
 
 // Allow the service worker to send messages before the dom's content is loaded

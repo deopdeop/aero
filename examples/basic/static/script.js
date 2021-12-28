@@ -27,14 +27,14 @@ window.addEventListener('load', () => {
 			event.preventDefault();
 			this.value = '';
 			go(this.value);
-		}
-
-		console.log(`${prefix}https://search.brave.com/api/suggest?q=${search.value || ''}`);
-		const response = await fetch(`${prefix}https://search.brave.com/api/suggest?q=${search.value || ''}`);
-		for (suggestion in response.json()[1]) {
-			const option = document.createElement('option');
-			option.value = suggestion;
-			document.getElementById('suggestions').appendChild(option);
-		}
+		} else await fetch(`${prefix}https://search.brave.com/api/suggest?q=${search.value || ''}`)
+			.then(response => response.json())
+			.then(json => {
+				for (suggestion in json[1]) {
+					const option = document.createElement('option');
+					option.value = suggestion;
+					document.getElementById('suggestions').appendChild(option);
+				}
+			});
 	});
 });

@@ -2,13 +2,14 @@ package aero
 
 import (
 	_ "embed"
-	"encoding/json"
 	"encoding/base64"
+	"encoding/json"
+	"strings"
+
 	"github.com/dgrr/http2"
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-	"strings"
 )
 
 //go:embed script.js
@@ -48,12 +49,12 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Request.Header.VisitAll(func(k, v []byte) {
 		switch string(k) {
 		// Only delete the Service-Worker if the service worker isn't the interceptor.
-		case "Accept-Encoding", "Cache-Control", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
+		case "Accept-Encoding", "Cache-Control", "Sec-Gpc", "Sec-Fetch-Site", "Sec-Fetch-Mode", "Sec-Fetch-Dest", "Service-Worker", "X-Forwarded-For", "X-Forwarded-Host":
 			// Do nothing, so these headers aren't added.
 		case "Host":
-			req.Header.SetBytesKV(k, req.URI().Host())
-		case "Referrer":
-			req.Header.SetBytesKV(k, ctx.Request.Header.Peek("_referrer"))
+			//req.Header.SetBytesKV(k, req.URI().Host())
+		case "Referer":
+			//req.Header.SetBytesKV(k, ctx.Request.Header.Peek("_referrer"))
 		default:
 			req.Header.SetBytesKV(k, v)
 		}
@@ -83,7 +84,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 	ctx.Response.Header.Set("Cross-Origin-Embedder-Policy", "require-corp")
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
-	ctx.Response.Header.Set("Service-Worker-Allowed", a.config.HTTP.Prefix)
+	ctx.Response.Header.Set("Service-Worker-Allowed", "/")
 
 	ctx.Response.SetStatusCode(resp.StatusCode())
 
@@ -106,7 +107,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
-				<script src=/rewrite.js></script>
+				<script src=/util.js></script>
 				<script>
 				'use strict'
 
