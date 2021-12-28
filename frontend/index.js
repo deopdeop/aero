@@ -103,12 +103,6 @@ _window.origin = new Proxy(origin, {
 	}
 });
 
-Object.defineProperty(_window, 'origin', {
-	get() {
-		return ctx.url.origin;
-	}
-});
-
 _window.WebSocket = class WebSocket extends window.WebSocket {
 	constructor(url, protocol) {
 		url = ctx.ws.prefix + url;
