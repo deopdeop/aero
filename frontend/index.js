@@ -92,12 +92,15 @@ _window.document = {
 }
 
 _window.location = new Proxy(location, {
-	get(target, property, receiver){
-		return Reflect.get(target, property, receiver);
-	},
-	set(target, property, value){
-		return Reflect.set(target, property, value);
-	},
+	get(target, prop){
+		return ctx.url[prop];
+	}
+});
+
+_window.origin = new Proxy(origin, {
+	get() {
+		return ctx.url.origin
+	}
 });
 
 Object.defineProperty(_window, 'origin', {
