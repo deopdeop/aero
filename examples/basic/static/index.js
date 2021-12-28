@@ -1,3 +1,5 @@
+'use strict';
+
 const prefix = '/http/';
 
 function color() {

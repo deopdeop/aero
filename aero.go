@@ -4,6 +4,9 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/dgrr/http2"
@@ -11,9 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
-
-//go:embed script.js
-var script string
 
 // Aero represents an instance of the Aero proxy.
 type Aero struct {
@@ -26,7 +26,14 @@ type Aero struct {
 func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, errors.New("unable to get filename")
+	}
+	dirname := filepath.Dir(filename)
+
 	r := router.New()
+	r.ServeFiles("/Aero$/{filepath:*}", dirname+"/frontend")
 	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
 	r.ServeFiles("/{filepath:*}", config.HTTP.Static)
 	// Websocket support.
@@ -84,7 +91,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 	ctx.Response.Header.Set("Cross-Origin-Embedder-Policy", "require-corp")
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
-	ctx.Response.Header.Set("Service-Worker-Allowed", "/")
+	ctx.Response.Header.Set("Service-Worker-Allowed", "/Aero$/")
 
 	ctx.Response.SetStatusCode(resp.StatusCode())
 
@@ -97,6 +104,14 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 
 	switch strings.Split(string(resp.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
+		/*
+			debugScript, err := ioutil.ReadFile("script.js") // just pass the file name
+			if err != nil {
+				fmt.Print(err)
+			}
+		*/
+		// see if the code works now
+
 		body = []byte(`
 		<!DOCTYPE html>
 		<html>
@@ -107,19 +122,17 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
-				<script src=/util.js></script>
 				<script>
-				'use strict'
+				'use strict';
 
-				const ctx = {
+				let ctx = {
 					body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
 					cors: ` + string(cors) + `,
 					url: new URL('` + uri + `')
 				};
-
-				` + script + `
 				</script>
-			</body>
+				<script src="/Aero$/index.js" type="module"></script>
+				</body>
 		</html>
 		`)
 	}

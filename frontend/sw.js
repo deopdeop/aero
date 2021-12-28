@@ -1,6 +1,6 @@
 'use strict'
 
-importScripts('./util.js');
+import { rewrite } from './utils.js';
 
 // Don't wait for the old service workers
 self.addEventListener('install', event => self.skipWaiting());
@@ -15,12 +15,10 @@ self.addEventListener('message', event => {
 });
 
 self.addEventListener('fetch', event => {
-	console.log(event.request.url.href);
 	console.log(event.request.mode);
 
 	event.waitUntil(async () => {
 		// Wait for context before sending request
-
 
 		const policy = {};
 		const tokens = ctxs[event.clientId].csp;
@@ -41,30 +39,31 @@ self.addEventListener('fetch', event => {
 			}
 		}
 
-		/*
-		// Fetch the resource
+		// Fetch the resource.
 		({ body, statusText, headers }) = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
 
 		if (['application/javascript', 'application/x-javascript'].includes(headers['content-type']))
 			// Scoping
 			body = rewrite.js(body);
 
-		// Return the resource
+		// Return the resource.
 		return new Response(body, {
 			statusText: statusText,
 			headers: headers
 		});
-		*/
 	});
 });
 
 /*
 Only supports chromium with the flag enable-experimental-cookie-features and a secure context
-https://wicg.github.io/cookie-store/#typedefdef-cookielist]
+https://wicg.github.io/cookie-store/#typedefdef-cookielist
 */
 self.addEventListener('cookiechange', event => {
-	for (const cookie of event.changed)
+	for (const cookie of event.changed) {
 		console.log('Cookie changed', cookie);
-	for (const cookie of event.deleted)
+	}
+		
+	for (const cookie of event.deleted) {
 		console.log('Deleted a cookie', cookie);
+	}
 });

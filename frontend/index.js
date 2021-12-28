@@ -1,19 +1,13 @@
-// modular scripts are isolated by default
+'use strict';
 
-import { RewriteUtil } from './utils.js';
+import { rewrite } from './utils.js';
 
-let ctx = window.AeroCTX;
+if (!isSecureContext)
+	throw new Error('Aero only supports secure contexts.');
+else if (!('serviceWorker' in navigator))
+	throw new Error('Aero requires navigator.serviceWorker support.');
 
-if (ctx == void[]) throw new TypeError('window.AeroCTX was not defined.');
-
-// isolate.
-delete window.AeroCTX;
-
-if (!isSecureContext) throw new Error('Aero only supports secure contexts.');
-else if (!('serviceWorker' in navigator)) throw new Error('Aero requires navigator.serviceWorker support.');
-
-// Unnecessary polyfill
-/*if (!('cookieStore' in window)) {
+if (!('cookieStore' in window)) {
 	w.document = {
 		cookie: {
 			set: (target, prop) => {
@@ -30,28 +24,21 @@ else if (!('serviceWorker' in navigator)) throw new Error('Aero requires navigat
 			}
 		}
 	}
-}*/
+}
 
-// Will not be supported
-delete window.CookieStore;
-delete window.cookieStore;
-delete window.CookieStoreManager;
-delete window.CookieChangeEvent;
-
-// What?
 ctx.csp = ctx.cors['Content-Security-Policy'];
 
 let process = node => {
 	if (node.href) {
 		node.href = rewrite.url(node.href);
-		node.oldHref = node.href;
+		node._href = node.href;
 	}
 
 	if (node instanceof HTMLScriptElement && node.textContent !== '') {
 		// Create the new script.
 		const script = document.createElement('script');
 		script.type = 'application/javascript';
-		script.text = node.text;
+		script.text = rewrite.js(node.text);
 
 		// Insert new script.
 		node.parentNode.insertBefore(script, node.nextSibling);
@@ -69,26 +56,25 @@ let process = node => {
 	}
 };
 
-let traverse_node = node => {
+let traverseNode = node => {
 	let stack = [node];
 
 	while(node = stack.pop) {
-		if (node instanceof Text) continue;
+		if (node instanceof Text)
+			continue;
 		
 		process(node);
-
-		if (node.childNodes instanceof NodeList) for (let child of node.childNodes) {
-			stack.push(child);
-		}
+		
+		if (node.childNodes instanceof NodeList)
+			for (let child of node.childNodes)
+				stack.push(child);
 	}
 };
 
 new MutationObserver(mutations => {
-	for (let mutation of mutations) {
-		for (let node of mutation.addedNodes) {
-			traverse_node(node);
-		}
-	}
+	for (let mutation of mutations)
+		for (let node of mutation.addedNodes)
+			traverseNode(node);
 }).observe(document, {
 	childList: true,
 	subtree: true
@@ -96,7 +82,7 @@ new MutationObserver(mutations => {
 
 let _window = {};
 
-w.document = {
+_window.document = {
 	baseURI: {
 		get: (target, prop) => ctx.url.origin
 	},
@@ -105,40 +91,42 @@ w.document = {
 	}
 }
 
-/*
-Not a Proxy().
-Object.defineProperty(w, 'location', {
-	get(target, prop) {
-		return ctx.url[prop];
-	}
+_window.location = new Proxy(location, {
+	get(target, property, receiver){
+		return Reflect.get(target, property, receiver);
+	},
+	set(target, property, value){
+		return Reflect.set(target, property, value);
+	},
 });
-*/
 
-Object.defineProperty(w, 'origin', {
+Object.defineProperty(_window, 'origin', {
 	get() {
 		return ctx.url.origin;
 	}
 });
 
-w.WebSocket = new Proxy(WebSocket, {
-	construct(target, args) {
-		args[0] = ctx.ws.prefix + args[0];
+_window.WebSocket = class WebSocket extends window.WebSocket {
+	constructor(url, protocol) {
+		url = ctx.ws.prefix + url;
 
 		return Reflect.construct(...args);
 	}
-});
+};
 
-w.RTCPeerConnection = {
-	prototype: new Proxy(RTCPeerConnection.prototype, {
-		construct(target, args) {
-			// ICE over WS
-			const ws = new WebSocket(ctx.ice.prefix)
+_window.RTCPeerConnection = class RTCPeerConnection extends EventTarget {
+	constructor(config){
+		super();
 
-			ws.send(JSON.stringify(args[0]));
+		this.socket = new WebSocket(ctx.ice.prefix)
 
-			// Send fake object
-		}
-	})
+		this.socket.addEventListener('open', () => {
+			this.socket.send(JSON.stringify(config));
+		});
+	}
+	close(){
+		this.socket.close();
+	}
 };
 
 // Update the url hash.
@@ -149,9 +137,7 @@ history.replaceState({}, '');
 // Don't set the history.
 addEventListener('popstate', event => event.preventDefault());
 
-addEventListener('submit', event => console.log(event));
-
-navigator.serviceWorker.register('/sw.js', {
+navigator.serviceWorker.register('/Aero$/sw.js', {
 	// The Allow-Service-Worker header must be set to /.
 	scope: '/',
 	// Don't cache http requests.
@@ -174,6 +160,3 @@ navigator.serviceWorker.register('/sw.js', {
 
 // Allow the service worker to send messages before the dom's content is loaded.
 navigator.serviceWorker.startMessages();
-
-/*Todo: change to globalThis._window*/
-globalThis.w = _window;

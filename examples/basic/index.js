@@ -155,7 +155,4 @@
 
 	// Allow the service worker to send messages before the dom's content is loaded.
 	navigator.serviceWorker.startMessages();
-
-	/*Todo: change to globalThis._window*/
-	globalThis.w = _window;
 }
