@@ -35,7 +35,7 @@
 	let traverseNode = node => {
 		let stack = [node];
 
-		while(node = stack.pop) {
+		while(node = stack.pop()) {
 			if (node instanceof Text) continue;
 			
 			process(node);
