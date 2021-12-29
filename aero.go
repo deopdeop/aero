@@ -1,12 +1,10 @@
 package aero
 
 import (
-	_ "embed"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
-	"path/filepath"
-	"runtime"
+	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/dgrr/http2"
@@ -26,15 +24,8 @@ type Aero struct {
 func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, error) {
 	a := &Aero{log: log, client: client, config: config}
 
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return nil, errors.New("unable to get filename")
-	}
-	dirname := filepath.Dir(filename)
-
 	r := router.New()
-	r.ServeFiles("/Aero$/{filepath:*}", dirname+"/frontend")
-	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
+	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
 	r.ServeFiles("/{filepath:*}", config.HTTP.Static)
 	// Websocket support.
 
@@ -104,13 +95,10 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 
 	switch strings.Split(string(resp.Header.Peek("Content-Type")), ";")[0] {
 	case "text/html", "text/x-html":
-		/*
-			debugScript, err := ioutil.ReadFile("script.js") // just pass the file name
-			if err != nil {
-				fmt.Print(err)
-			}
-		*/
-		// see if the code works now
+		script, err := ioutil.ReadFile("index.js")
+		if err != nil {
+			fmt.Print(err)
+		}
 
 		body = []byte(`
 		<!DOCTYPE html>
@@ -118,20 +106,23 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 			<head>
 				<meta charset=utf-8>
 
-				<!-- Reset favicon -->
+				<!--Reset favicon-->
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
-				<script>
-				'use strict';
+				<script type=module>
+					'use strict';
 
-				let ctx = {
-					body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
-					cors: ` + string(cors) + `,
-					url: new URL('` + uri + `')
-				};
+					let ctx = {
+						body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
+						cors: ` + string(cors) + `,
+						url: new URL('` + uri + `')
+					};
+
+					{
+						` + string(script) + `
+					}
 				</script>
-				<script src="/Aero$/index.js" type="module"></script>
 				</body>
 		</html>
 		`)

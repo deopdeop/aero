@@ -13,44 +13,14 @@ new MutationObserver(mutations => {
 			let stack = [node];
 
 			while (node = stack.pop()) {
-				console.log(node);
 				if (node instanceof Text)
 					continue;
-
-<<<<<<< HEAD
 				if (node.href) {
 					console.log(node.href);
 
 					//node.href = rewrite.url(node.href);
 					node._href = node.href;
 				}
-=======
-			// Delete the old script.
-			node.remove();
-		}
-		else if (
-			node instanceof HTMLMetaElement &&
-			// https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
-			node.httpEquiv.toLowerCase() == 'content-security-policy' &&
-			(node.parentElement instanceof HTMLHeadElement || node.content !== '')
-		)
-			ctx.csp.push(node.content);
-	};
-
-	let traverseNode = node => {
-		let stack = [node];
-
-		while(node = stack.pop()) {
-			if (node instanceof Text) continue;
-			
-			process(node);
-
-			if (node.childNodes instanceof NodeList) for (let child of node.childNodes) {
-				stack.push(child);
-			}
-		}
-	};
->>>>>>> 600d0eb4df10fc6929406d26560e874b4569eaeb
 
 				if (node instanceof HTMLScriptElement && node.textContent !== '') {
 					// Create the new script.
