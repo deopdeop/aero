@@ -3,7 +3,7 @@
 import { rewrite } from './utils.js';
 
 // Don't wait for the old service workers
-self.addEventListener('install', event => self.skipWaiting());
+self.addEventListener('install', _ => self.skipWaiting());
 
 // Use the service worker immediately instead of after reload
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
@@ -14,10 +14,10 @@ self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
 self.addEventListener('fetch', event => {
 	console.log(event.request.mode);
-
 	event.waitUntil(async () => {
 		// Wait for context before sending request
 
+		// CORS emulation
 		const policy = {};
 		const tokens = ctxs[event.clientId].csp;
 		for (let i = 0; i < tokens.length; i++) {
@@ -37,8 +37,10 @@ self.addEventListener('fetch', event => {
 			}
 		}
 
+		//console.log(await fetch(rewrite.url(event.request.url.split(location.origin)[1])));
+
+		console.log("Fetching")
 		/*
-		// Fetch the resource.
 		{ body, statusText, headers } = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
 
 		if (['application/javascript', 'application/x-javascript'].includes(headers['content-type']))
@@ -50,7 +52,6 @@ self.addEventListener('fetch', event => {
 			statusText: statusText,
 			headers: headers
 		});
-		*/
 	});
 });
 

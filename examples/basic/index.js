@@ -13,10 +13,10 @@ new MutationObserver(mutations => {
 			while (node = stack.pop()) {
 				if (node instanceof Text)
 					continue;
+				
 				if (node.href) {
 					console.log(node.href);
-
-					//node.href = rewrite.url(node.href);
+					node.href = rewrite.url(node.href,ctx.url.origin);
 					node._href = node.href;
 				}
 
@@ -24,7 +24,7 @@ new MutationObserver(mutations => {
 					// Create the new script.
 					const script = document.createElement('script');
 					script.type = 'application/javascript';
-					script.text = rewrite.js(node.text);
+					script.text = rewrite.js(node.text, ctx.url.origin);
 
 					// Insert new script.
 					node.parentNode.insertBefore(script, node.nextSibling);
@@ -125,7 +125,6 @@ history.replaceState({}, '');
 // Don't set the history.
 addEventListener('popstate', event => event.preventDefault());
 
-console.log('hi');
 navigator.serviceWorker.register('/sw.js', {
 	// Allow es6 imports to be used
 	type: 'module',

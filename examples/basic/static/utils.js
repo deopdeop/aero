@@ -1,17 +1,23 @@
 'use strict';
 
 export const rewrite = {
-	url(url) {
+	url(url, origin) {
 		if (url.startsWith('data:'))
 			return url;
 		else if (url.startsWith('./'))
 			url = url.splice(2);
 
-		console.log(url);
-		console.log(ctx);
-		console.log('/http/' + url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') ? ctx.origin + url.startsWith('/') ? '' : '/' : url);
+		console.log(url,origin)
 
-		return '/http/' + url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') ? ctx.origin + url.startsWith('/') ? '' : '/' : url;
+		/*
+		old code for reference
+		'/http/' + url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') ? origin + url.startsWith('/') ? '' : '/' : url
+		*/
+
+		const validProtocol = url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://');
+		let rewritten = `/http/${validProtocol ? url : ctx.url.origin + url}`;
+		console.log(rewritten)
+		return rewritten
 	},
 	js(script) {
 		return `
