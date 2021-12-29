@@ -1,5 +1,3 @@
-import { rewrite } from '/utils.js';
-
 if (!isSecureContext)
 	throw new Error('Aero only supports secure contexts.');
 else if (!('serviceWorker' in navigator))
@@ -109,7 +107,6 @@ _window.RTCPeerConnection = class RTCPeerConnection extends EventTarget {
 
 		this.socket = new WebSocket(ctx.ice.prefix)
 
-<<<<<<< HEAD
 		this.socket.addEventListener('open', () => {
 			this.socket.send(JSON.stringify(config));
 		});
@@ -153,47 +150,3 @@ navigator.serviceWorker.register('/sw.js', {
 	const scripts = document.getElementsByTagName('script');
 	scripts[scripts.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
 });
-
-// Allow the service worker to send messages before the dom's content is loaded.
-navigator.serviceWorker.startMessages();
-=======
-				// Send fake object
-			}
-		})
-	};
-
-	// Update the url hash.
-	addEventListener('hashchange', event => context.url = location.hash);
-
-	// Clear history.
-	history.replaceState({}, '');
-	// Don't set the history.
-	addEventListener('popstate', event => event.preventDefault());
-
-	addEventListener('submit', event => console.log(event));
-
-	navigator.serviceWorker.register('/sw.js', {
-		// The Allow-Service-Worker header must be set to /.
-		scope: '/',
-		// Don't cache http requests.
-		updateViaCache: 'none'
-	}).then(registration => {
-		// Update service worker
-		registration.update();
-
-		// Share server data with the service worker.
-		const chan = new MessageChannel();
-		registration.active.postMessage({
-			cors: ctx.cors,
-			origin: ctx.url.origin
-		}, [chan.port2]);
-
-		// Insert the site's html after this scripts.
-		const scripts = document.getElementsByTagName('script');
-		scripts[scripts.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
-	});
-
-	// Allow the service worker to send messages before the dom's content is loaded.
-	navigator.serviceWorker.startMessages();
-}
->>>>>>> 600d0eb4df10fc6929406d26560e874b4569eaeb

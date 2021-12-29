@@ -25,7 +25,7 @@ func New(log *logrus.Logger, client *fasthttp.Client, config Config) (*Aero, err
 	a := &Aero{log: log, client: client, config: config}
 
 	r := router.New()
-	r.GET(config.HTTP.Prefix + "{filepath:*}", a.http)
+	r.GET(config.HTTP.Prefix+"{filepath:*}", a.http)
 	r.ServeFiles("/{filepath:*}", config.HTTP.Static)
 	// Websocket support.
 
@@ -113,15 +113,15 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<script type=module>
 					'use strict';
 
+					import { rewrite } from '/utils.js';
+
 					let ctx = {
 						body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
 						cors: ` + string(cors) + `,
 						url: new URL('` + uri + `')
 					};
 
-					{
-						` + string(script) + `
-					}
+					` + string(script) + `
 				</script>
 				</body>
 		</html>
