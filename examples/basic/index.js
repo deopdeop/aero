@@ -12,10 +12,9 @@ new MutationObserver(mutations => {
 
 			while (node = stack.pop()) {
 				if (node instanceof Text)
-					continue;
-				
+					continue
+			
 				if (node.href) {
-					console.log(node.href);
 					node.href = rewrite.url(node.href,ctx.url.origin);
 					node._href = node.href;
 				}
@@ -29,7 +28,7 @@ new MutationObserver(mutations => {
 					// Insert new script.
 					node.parentNode.insertBefore(script, node.nextSibling);
 
-					// Delete the old script.
+					// Delete the old script
 					node.remove();
 				} else if (
 					node instanceof HTMLMetaElement &&
@@ -133,7 +132,7 @@ navigator.serviceWorker.register('/sw.js', {
 	// Don't cache http requests.
 	updateViaCache: 'none'
 }).then(registration => {
-	console.log('registered');
+	console.log(registration);
 
 	// Update service worker
 	registration.update();

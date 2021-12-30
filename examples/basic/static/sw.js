@@ -1,6 +1,6 @@
 'use strict';
 
-import { rewrite } from './utils.js';
+importScripts('/utils.js')
 
 // Don't wait for the old service workers
 self.addEventListener('install', _ => self.skipWaiting());
@@ -39,7 +39,7 @@ self.addEventListener('fetch', event => {
 
 		//console.log(await fetch(rewrite.url(event.request.url.split(location.origin)[1])));
 
-		console.log("Fetching")
+		console.log("Fetching");
 		/*
 		{ body, statusText, headers } = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
 
