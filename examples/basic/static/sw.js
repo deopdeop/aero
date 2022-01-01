@@ -3,7 +3,7 @@
 importScripts('/utils.js')
 
 // Don't wait for the old service workers
-self.addEventListener('install', _ => self.skipWaiting());
+//self.addEventListener('install', _ => self.skipWaiting());
 
 // Use the service worker immediately instead of after reload
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
@@ -13,8 +13,15 @@ const ctxs = {};
 self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
 self.addEventListener('fetch', event => {
-	console.log(event.request.mode);
-	event.waitUntil(async () => {
+	console.log(event);
+
+	const get = url(event.request.url.split(location.origin)[1]);
+
+	console.log(get);
+
+	console.log(fetch(get));
+	
+	event.waitUntil(_ => {
 		// Wait for context before sending request
 
 		// CORS emulation
@@ -52,6 +59,7 @@ self.addEventListener('fetch', event => {
 			statusText: statusText,
 			headers: headers
 		});
+		*/
 	});
 });
 

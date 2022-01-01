@@ -82,7 +82,8 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 	ctx.Response.Header.Set("Cross-Origin-Embedder-Policy", "require-corp")
 	ctx.Response.Header.Set("Cross-Origin-Resource-Policy", "same-origin")
-	ctx.Response.Header.Set("Service-Worker-Allowed", "/Aero$/")
+	// Allow service worker to be registered at the root
+	ctx.Response.Header.Set("Service-Worker-Allowed", "/")
 
 	ctx.Response.SetStatusCode(resp.StatusCode())
 
@@ -110,14 +111,14 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
+				<script src=/utils.js></script>
 				<script type=module>
 					'use strict';
-
-					import { rewrite } from '/utils.js';
 
 					let ctx = {
 						body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
 						cors: ` + string(cors) + `,
+						prefix: '` + a.config.HTTP.Prefix + `',
 						url: new URL('` + uri + `')
 					};
 

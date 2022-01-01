@@ -1,8 +1,3 @@
-if (!isSecureContext)
-	throw new Error('Aero only supports secure contexts.');
-else if (!('serviceWorker' in navigator))
-	throw new Error('Aero requires navigator.serviceWorker support.');
-
 ctx.csp = ctx.cors['Content-Security-Policy'];
 
 new MutationObserver(mutations => {
@@ -15,7 +10,7 @@ new MutationObserver(mutations => {
 					continue
 			
 				if (node.href) {
-					node.href = rewrite.url(node.href,ctx.url.origin);
+					node.href = url(node.href,ctx.url.origin);
 					node._href = node.href;
 				}
 
@@ -23,7 +18,7 @@ new MutationObserver(mutations => {
 					// Create the new script.
 					const script = document.createElement('script');
 					script.type = 'application/javascript';
-					script.text = rewrite.js(node.text, ctx.url.origin);
+					script.text = js(node.text, ctx.url.origin);
 
 					// Insert new script.
 					node.parentNode.insertBefore(script, node.nextSibling);
@@ -51,7 +46,6 @@ new MutationObserver(mutations => {
 
 let _window = {};
 
-/*
 if (!('cookieStore' in window)) {
 	_window.document = {
 		cookie: {
@@ -81,11 +75,12 @@ _window.document = {
 }
 
 _window.location = new Proxy(location, {
-	get(target, prop){
+	get(target, prop) {
 		return ctx.url[prop];
 	}
 });
 
+/*
 _window.origin = new Proxy(origin, {
 	get() {
 		return ctx.url.origin
@@ -101,7 +96,7 @@ _window.WebSocket = class WebSocket extends WebSocket {
 };
 
 _window.RTCPeerConnection = class RTCPeerConnection extends EventTarget {
-	constructor(config){
+	constructor(config) {
 		super();
 
 		this.socket = new WebSocket(ctx.ice.prefix)
@@ -110,7 +105,7 @@ _window.RTCPeerConnection = class RTCPeerConnection extends EventTarget {
 			this.socket.send(JSON.stringify(config));
 		});
 	}
-	close(){
+	close() {
 		this.socket.close();
 	}
 };
@@ -124,27 +119,38 @@ history.replaceState({}, '');
 // Don't set the history.
 addEventListener('popstate', event => event.preventDefault());
 
-navigator.serviceWorker.register('/sw.js', {
-	// Allow es6 imports to be used
-	type: 'module',
-	// The Allow-Service-Worker header must be set to /.
-	scope: '/',
-	// Don't cache http requests.
-	updateViaCache: 'none'
-}).then(registration => {
-	console.log(registration);
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.register('/sw.js', {
+		// The Service-Worker-Allowed must be set to '/'
+		scope: '/',
+		// Don't cache http requests.
+		updateViaCache: 'none'
+	}).then(reg => {
+		// Update service worker
+		reg.update();
 
-	// Update service worker
-	registration.update();
+		function ready() {
+			// Share server data with the service worker.
+			const chan = new MessageChannel();
+			reg.active.postMessage({
+				cors: ctx.cors,
+				url: {
+					origin: ctx.url.origin
+				}
+			}, [chan.port2]);
 
-	// Share server data with the service worker.
-	const chan = new MessageChannel();
-	registration.active.postMessage({
-		cors: ctx.cors,
-		origin: ctx.url.origin
-	}, [chan.port2]);
+			// Insert the site's html after this script.
+			const scripts = document.getElementsByTagName('script');
+			scripts[scripts.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
+		}
 
-	// Insert the site's html after this script.
-	const scripts = document.getElementsByTagName('script');
-	scripts[scripts.length - 1].insertAdjacentHTML("beforebegin", ctx.body);
-});
+		console.log(reg);
+
+		if ('active' in reg)
+			ready();
+		else
+			console.log(reg.state);
+	});
+} else {
+	// Proxy object fallbacks
+}
