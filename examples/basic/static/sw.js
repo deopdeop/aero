@@ -3,13 +3,13 @@
 importScripts('/utils.js')
 
 // Don't wait for the old service workers
-//self.addEventListener('install', _ => self.skipWaiting());
+self.addEventListener('install', _ => self.skipWaiting());
 
-// Use the service worker immediately instead of after reload
+// Use the service worker immediately instead of after reload.
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 
 const ctxs = {};
-// Set the server ctx
+// Set the server ctx.
 self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
 self.addEventListener('fetch', event => {
