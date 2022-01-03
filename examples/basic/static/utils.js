@@ -8,8 +8,6 @@ function url(url) {
 
 		const validProtocol = url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://');
 		
-		console.log(ctx.url.origin);
-		
 		const rewritten = prefix + (validProtocol ? url : ctx.url.origin + url);
 
 		console.log(rewritten);

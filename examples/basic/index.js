@@ -1,3 +1,7 @@
+'use strict';
+
+console.log(ctx);
+
 ctx.csp = ctx.cors['Content-Security-Policy'];
 
 new MutationObserver(mutations => {
@@ -8,10 +12,16 @@ new MutationObserver(mutations => {
 			while (node = stack.pop()) {
 				if (node instanceof Text)
 					continue
-			
+	
+				// Attribute rewriting
 				if (node.href) {
-					node.href = url(node.href,ctx.url.origin);
+					node.href = url(node.href);
 					node._href = node.href;
+				}
+				if (node.action) {
+					console.log(node);
+					node.action = url(node.action);
+					node._action = node.action;
 				}
 
 				if (node instanceof HTMLScriptElement && node.textContent !== '') {

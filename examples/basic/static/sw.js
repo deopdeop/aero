@@ -15,12 +15,11 @@ self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 self.addEventListener('fetch', event => {
 	console.log(event);
 
-	const get = url(event.request.url.split(location.origin)[1]);
+	console.log(fetch(event.request.url.split(location.origin)[1]));
 
-	console.log(get);
-
-	console.log(fetch(get));
+	event.waitUntil(_ => null)
 	
+	/*
 	event.waitUntil(_ => {
 		// Wait for context before sending request
 
@@ -44,23 +43,21 @@ self.addEventListener('fetch', event => {
 			}
 		}
 
-		//console.log(await fetch(rewrite.url(event.request.url.split(location.origin)[1])));
-
 		console.log("Fetching");
-		/*
-		{ body, statusText, headers } = await fetch(rewrite.url(event.request.url.split(location.origin)[1]));
+	
+		{ body, statusText, headers } = await fetch(url(event.request.url.split(location.origin)[1]));
 
 		if (['application/javascript', 'application/x-javascript'].includes(headers['content-type']))
 			// Scoping
-			body = rewrite.js(body);
+			body = js(body);
 
 		// Return the resource.
 		return new Response(body, {
 			statusText: statusText,
 			headers: headers
 		});
-		*/
 	});
+	*/
 });
 
 /*
