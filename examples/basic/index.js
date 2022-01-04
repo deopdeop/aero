@@ -31,7 +31,8 @@ new MutationObserver(mutations => {
 					script.text = js(node.text, ctx.url.origin);
 
 					// Insert new script.
-					node.parentNode.insertBefore(script, node.nextSibling);
+					// This causes an infinite loop
+					//node.parentNode.insertBefore(script, node.nextSibling);
 
 					// Delete the old script
 					node.remove();
