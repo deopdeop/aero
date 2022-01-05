@@ -111,12 +111,10 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
-				<script src=/utils.js></script>
 				<script type=module>
 					'use strict';
 
-					let ctx = {
-						body: atob('` + base64.StdEncoding.EncodeToString(body) + `'),
+					const ctx = {
 						cors: ` + string(cors) + `,
 						prefix: '` + a.config.HTTP.Prefix + `',
 						url: new URL('` + uri + `')

@@ -12,14 +12,48 @@ const ctxs = {};
 // Set the server ctx.
 self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
+const firstRequest = true;
+self.addEventListener('fetch', event => {
+	event.respondWith(async function() {
+		// Get mime type from headers
+		const mimeType = event.request.headers.get('Content-Type').split(';')[0];
+
+		await fetch(event.request.url.split(location.origin)[1]).then(resp => {
+			// If a site is being resolved
+			if (mimeType === 'text/html' && event.request.type !== 'navigate') {
+				return new Response(`
+				// Proxy Objects
+				...
+
+				// Update the url hash.
+				addEventListener('hashchange', event => context.url = location.hash);
+	
+				// Clear history.
+				history.replaceState({}, '');
+	
+				// Don't set the history.
+				addEventListener('popstate', event => event.preventDefault());
+	
+				_window.document.write(${resp.text()})
+				`, {
+	
+				})
+			} else if (['application/javascript', 'application/x-javascript'].includes(mimeType))
+				// Scope
+				js(resp.text())
+			else {
+				// Proxy as normal
+			}
+		})	
+	});
+});
+
+/*
 self.addEventListener('fetch', event => {
 	console.log(event);
 
 	console.log(fetch(event.request.url.split(location.origin)[1]));
-
-	event.waitUntil(_ => null)
 	
-	/*
 	event.waitUntil(_ => {
 		// Wait for context before sending request
 
@@ -57,8 +91,8 @@ self.addEventListener('fetch', event => {
 			headers: headers
 		});
 	});
-	*/
 });
+*/
 
 /*
 Only supports chromium with the flag enable-experimental-cookie-features and a secure context
