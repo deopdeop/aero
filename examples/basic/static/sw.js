@@ -12,7 +12,6 @@ const ctxs = {};
 // Set the server ctx.
 self.addEventListener('message', event => ctxs[event.clientId] = event.data);
 
-const firstRequest = true;
 self.addEventListener('fetch', event => {
 	const ctx = ctxs[event.clientId];
 
@@ -24,8 +23,7 @@ self.addEventListener('fetch', event => {
 			// If a site is being resolved
 			if (mimeType === 'text/html' && event.request.type !== 'navigate') {
 				return new Response(`
-				// Proxy Objects
-				...
+				import * from '_window.js';
 
 				// Update the url hash.
 				addEventListener('hashchange', event => context.url = location.hash);
