@@ -21,5 +21,13 @@ if ('serviceWorker' in navigator) {
         } else
             console.log(reg.state);
     });
-} else
-    document.write('Your browser does not support service workers');
+} else {
+    const firefox = false;
+    
+    // Service workers can't be created if on private browsing mode on firefox   
+    if (firefox) {
+        document.write('❌ Please leave private browsing mode.');
+    } else {
+        document.write('❌ Service workers are not supported!');
+    }
+}
