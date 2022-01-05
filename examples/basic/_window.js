@@ -7,6 +7,11 @@ ctx.csp = ctx.cors['Content-Security-Policy'];
 function process(html) {
 
 };
+
+// No more mutaiton observer!!!
+// Scripts won't be cancelled
+// Move rewriting to process though
+// Instead checking every script element and attribute just see if the text node belongs to a script much easier
 /*
 new MutationObserver(mutations => {
 	for (let mutation of mutations)

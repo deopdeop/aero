@@ -111,9 +111,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 				<link href=data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII= rel="icon" type="image/x-icon"/>
 			</head>
 			<body>
-				<script type=module>
-					'use strict';
-
+				<script>
 					const ctx = {
 						cors: ` + string(cors) + `,
 						prefix: '` + a.config.HTTP.Prefix + `',
@@ -122,7 +120,7 @@ func (a *Aero) http(ctx *fasthttp.RequestCtx) {
 
 					` + string(script) + `
 				</script>
-				</body>
+			</body>
 		</html>
 		`)
 	}
