@@ -1,3 +1,5 @@
+codec = "plain"
+
 [SSL]
   # The SSL certificate to use for the proxy.
   Cert = "cert.pem"

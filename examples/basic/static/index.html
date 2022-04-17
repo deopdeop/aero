@@ -1,38 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang=en>
 	<head>
 		<title>Aero</title>
 		<meta charset=utf-8>
 		<meta name=viewport content="width=device-width, initial-scale=1.0">
 		<meta name=description content="A new interception based proxy concept.">
-		<meta property=og:image content=./images/aero.png>
 		<meta name=theme-color content=#1473E0>
+		<meta property=og:image content=./logo.png>
 		<link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css>
 		<link href=./index.css rel=stylesheet>
 	</head>
 	<body>
-		<a href=# class=settings>Settings</a>
-		<div>
-			<h1 class=title>
-				<img src=./images/aero.png unselectable=on>
-			</h1>
-			<div class=omnibox>
-				<input id=search onkeyup=color() autofocus autocomplete=off placeholder="Search or type a URL">
-				<button class="go" onclick="go()">
-					<i class="fa fa-search"></i>
-				</button>
-				<datalist id="suggestions"></datalist>
-			</div>
-			<div class=icons-pos>
-				<div class=icons>
-					<a class=icon href=https://github.com/titaniumnetwork-dev/aero target=_blank>
-						<i class="fab fa-github"></i>
-					</a>
-					<a class=icon href=https://discord.gg/ntyz2SUYYS target=_blank>
-						<i class="fab fa-discord"></i>
-					</a>
-				</div>
-			</div>
+		<div class=omnibox>
+			<h1><img alt=Unblock. width=200 height=200 src=./logo.png></h1>
+			<input class=search type=text size=60 placeholder="Search the web" autofocus autocomplete=off>
 		</div>
 		<script src=./index.js></script>
 	</body>
