@@ -1,0 +1,21 @@
+codec = "plain"
+
+[SSL]
+  # The SSL certificate to use for the proxy.
+  Cert = "cert.pem"
+  # The SSL key to use for the proxy.
+  Key = "key.pem"
+  # Determines if SSL is enabled
+  Enabled = false
+
+[HTTP]
+  # The HTTP address to listen on.
+  Addr = ":3000"
+  # The prefix to use to access the HTTP proxy.
+  Prefix = "/http/"
+  # The path to the static files.
+  Static = "static"
+
+[WS]
+  # The prefix to use to access the WebSocket proxy.
+  Prefix = "/ws/"

@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap');
+
+body {
+    overflow-x: hidden;
+    background-color: #2e3440
+}
+
+.omnibox {
+    width: 100%;
+    font-family: 'montserrat alternates', sans-serif;
+    padding: 2em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.omnibox h1 {
+  color: white;
+  font-size: 5em;
+  margin: 0.5em;
+}
+
+.omnibox input {
+  font-family: 'montserrat alternates', sans-serif;
+  font-size: 1em;
+  padding: .7rem;
+  border-style: none;
+  background-color: #3b4252;
+  color: white;
+}
